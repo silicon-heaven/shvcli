@@ -38,20 +38,6 @@ devenv:
   extends: .nix
   needs: ["devenv"]
 
-tests:
-  extends: .test
-  script:
-    - nix develop --quiet -c pytest -v --junitxml=report.xml --cov=. --cov-report xml:coverage.xml --cov-report html:coverage --cov-report term
-  artifacts:
-    reports:
-      junit: report.xml
-      coverage_report:
-        coverage_format: cobertura
-        path: coverage.xml
-    paths:
-      - 'coverage/'
-  coverage: '/^TOTAL.*\s+([^\s]+)%$/'
-
 nix-build:
   extends: .test
   script:
@@ -102,7 +88,7 @@ isort:
 pydocstyle:
   extends: .style
   script:
-    - nix develop --quiet -c pydocstyle --match='(?!tests/)*.py' .
+    - nix develop --quiet -c pydocstyle .
 
 editorconfig-checker:
   extends: .style

@@ -2,6 +2,7 @@
 #
 # For the full list of built-in configuration values, see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
+# mypy: ignore-errors
 import pathlib
 import sys
 
@@ -45,3 +46,14 @@ autodoc_default_options = {
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
 }
+
+
+def build_finished_gitignore(app, exception):
+    """Create .gitignore file when build is finished."""
+    outpath = pathlib.Path(app.outdir)
+    if exception is None and outpath.is_dir():
+        (outpath / ".gitignore").write_text("**\n")
+
+
+def setup(app):
+    app.connect("build-finished", build_finished_gitignore)

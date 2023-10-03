@@ -12,7 +12,10 @@ classifiers = [
   "Operating System :: OS Independent",
 ]
 requires-python = ">=3.10"
-dependencies = []
+dependencies = [
+  "pyshv",
+  "prompt_toolkit",
+]
 
 [project.urls]
 repository = "https://gitlab.com/elektroline-predator/shvcli"
@@ -21,10 +24,6 @@ repository = "https://gitlab.com/elektroline-predator/shvcli"
 docs = [
   "sphinx",
   "sphinx_rtd_theme",
-]
-test = [
-  "pytest",
-  "pytest-cov",
 ]
 lint = [
   "black",
@@ -35,7 +34,7 @@ lint = [
 ]
 
 [project.scripts]
-foo = "foo.__main__:main"
+shvcli = "shvcli.__main__:main"
 
 [build-system]
 requires = ["setuptools"]

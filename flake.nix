@@ -4,7 +4,6 @@
     pyshv.url = "git+https://gitlab.com/elektroline-predator/pyshv.git?ref=shv3";
   };
 
-
   outputs = {
     self,
     flake-utils,
@@ -19,7 +18,6 @@
 
       requires = p: attrList p pyproject.project.dependencies;
       requires-docs = p: attrList p pyproject.project.optional-dependencies.docs;
-      requires-test = p: attrList p pyproject.project.optional-dependencies.test;
       requires-dev = p:
         attrList p pyproject.project.optional-dependencies.lint
         ++ [p.build p.twine];
@@ -43,7 +41,6 @@
           outputs = ["out" "doc"];
           propagatedBuildInputs = requires pythonPackages;
           nativeBuildInputs = [sphinxHook] ++ requires-docs pythonPackages;
-          nativeCheckInputs = [pytestCheckHook] ++ requires-test pythonPackages;
         };
     in
       {
@@ -85,7 +82,6 @@
                 ++ foldl (prev: f: prev ++ f p) [] [
                   requires
                   requires-docs
-                  requires-test
                   requires-dev
                 ]))
             ];
