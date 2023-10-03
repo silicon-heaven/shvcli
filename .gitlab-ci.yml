@@ -1,0 +1,153 @@
+stages:
+  - devenv
+  - test
+  - lint
+  - style
+  - deploy
+
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push"
+
+variables:
+  GIT_DEPTH: 0
+
+.nix:
+  image: registry.gitlab.com/cynerd/gitlab-ci-nix
+  tags:
+    - docker
+  cache:
+    key: "nix"
+    paths:
+      - ".nix-cache"
+  before_script:
+    - gitlab-ci-nix-cache-before
+  after_script:
+    - gitlab-ci-nix-cache-after
+
+## Development environment #####################################################
+devenv:
+  stage: devenv
+  extends: .nix
+  script:
+    - nix develop -c true
+
+## Test stage ##################################################################
+.test:
+  stage: test
+  extends: .nix
+  needs: ["devenv"]
+
+tests:
+  extends: .test
+  script:
+    - nix develop --quiet -c pytest -v --junitxml=report.xml --cov=. --cov-report xml:coverage.xml --cov-report html:coverage --cov-report term
+  artifacts:
+    reports:
+      junit: report.xml
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+    paths:
+      - 'coverage/'
+  coverage: '/^TOTAL.*\s+([^\s]+)%$/'
+
+nix-build:
+  extends: .test
+  script:
+    - nix build
+
+nix-check:
+  extends: .test
+  script:
+    - nix flake check
+
+include:
+  - template: Security/Secret-Detection.gitlab-ci.yml
+
+## Linters #####################################################################
+.lint:
+  stage: lint
+  extends: .nix
+  needs: ["devenv"]
+
+pylint:
+  extends: .lint
+  script:
+    - nix develop --quiet -c pylint --output-format=colorized .
+
+mypy:
+  extends: .lint
+  script:
+    - mkdir .mypy-cache
+    - nix develop --quiet -c mypy --cache-dir .mypy-cache --install-types --non-interactive .
+
+## Style stage #################################################################
+.style:
+  stage: style
+  extends: .nix
+  needs: ["devenv"]
+  allow_failure: true
+
+black:
+  extends: .style
+  script:
+    - nix develop --quiet -c black --diff --check .
+
+isort:
+  extends: .style
+  script:
+    - nix develop --quiet -c isort --diff --check .
+
+pydocstyle:
+  extends: .style
+  script:
+    - nix develop --quiet -c pydocstyle --match='(?!tests/)*.py' .
+
+editorconfig-checker:
+  extends: .style
+  script:
+    - nix develop --quiet -c editorconfig-checker -exclude '.nix-cache/.*'
+
+gitlint:
+  extends: .style
+  script:
+    - git fetch
+    - nix develop --quiet -c gitlint --commits origin/master..$CI_COMMIT_SHA
+
+## Release creation ############################################################
+.deploy:
+  stage: deploy
+  rules:
+    - if: '$CI_COMMIT_TAG'
+  needs:
+    - job: tests
+      artifacts: false
+
+release:
+  extends: .deploy
+  image: "registry.gitlab.com/gitlab-org/release-cli:latest"
+  before_script:
+    - apk update
+    - apk add bash curl jq py3-pip
+    - pip install yq
+  script:
+    - bash .release.sh
+
+gitlab-pypi:
+  extends: [.nix, .deploy]
+  script:
+    - nix develop --quiet -c python3 -m build
+    - TWINE_PASSWORD=$CI_JOB_TOKEN TWINE_USERNAME=gitlab-ci-token nix develop --quiet -c twine upload --repository-url ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/pypi dist/*
+
+pages:
+  stage: deploy
+  extends: .nix
+  rules:
+    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
+  needs: ["devenv"]
+  script:
+    - nix develop --quiet -c sphinx-build docs public
+  artifacts:
+    paths:
+    - public
