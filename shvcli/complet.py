@@ -23,10 +23,16 @@ def _comp_from(
 class CliCompleter(Completer):
     """Completer for SHVCLI based on discovered tree."""
 
+    TOGGLE_OPTS = {"toggle", "on", "off"}
     INTERNAL = {
+        "!h": None,
+        "!help": None,
         "!t": None,
         "!tree": None,
-        "!raw": {"toggle", "on", "off"},
+        "!raw": TOGGLE_OPTS,
+        "!autoprobe": TOGGLE_OPTS,
+        "!d": TOGGLE_OPTS,
+        "!debug": TOGGLE_OPTS,
     }
 
     def __init__(self, shvclient: SHVClient, config: CliConfig) -> None:

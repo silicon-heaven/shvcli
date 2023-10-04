@@ -74,6 +74,15 @@ disable = [
 # https://black.readthedocs.io/en/stable/guides/using_black_with_other_tools.html
 max-line-length = 88
 
+[tool.mypy]
+python_version = 3.10
+ignore_missing_imports = true
+disallow_untyped_defs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_return_any = true
+warn_unreachable = true
+
 [tool.pydocstyle]
 convention = "pep257"
 match_dir = "(?!docs).*"

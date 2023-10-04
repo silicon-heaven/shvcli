@@ -101,7 +101,10 @@ async def call_method(shvclient: SHVClient, config: CliConfig, items: CliItems) 
                 + "completion should be performed."
             )
             print("  d|debug toggle|on|off")
-            print("    Switch between enabled and disabled debug output.")
+            print(
+                "    Switch between enabled and disabled debug output "
+                + "(disable of autoprobe is suggested)."
+            )
         elif items.method in ("!t", "!tree"):
             print_node_tree(shvclient.tree, [])
         elif items.method == "!raw":
