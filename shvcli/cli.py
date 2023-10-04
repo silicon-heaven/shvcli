@@ -1,26 +1,35 @@
 """Command line interface."""
-import dataclasses
-from pathlib import Path, PurePosixPath
+import itertools
+import pathlib
+import string
 
-from prompt_toolkit import PromptSession
+from prompt_toolkit import PromptSession, print_formatted_text
+from prompt_toolkit.formatted_text import FormattedText
 from prompt_toolkit.history import FileHistory
 from prompt_toolkit.patch_stdout import patch_stdout
 from prompt_toolkit.styles import Style
-from shv import RpcError, RpcUrl, SHVType, SimpleClient, ValueClient
+from shv import RpcError, RpcMethodDesc, RpcMethodFlags, RpcUrl
 from shv.cpon import Cpon
 
-
-@dataclasses.dataclass
-class _Config:
-    """Configuration passed around in CLI implementation."""
-
-    raw: bool = False
-    """Interpret ls and dir method calls internally or not."""
-
+from .client import Node, SHVClient
+from .complet import CliCompleter
+from .config import CliConfig
+from .parse import CliItems, parse_line
+from .tools import intersperse, lookahead
 
 style = Style.from_dict(
     {
         "": "ansiwhite",
+        # ls
+        "ls-regular": "ansiwhite",
+        "ls-dot": "ansigray",
+        "ls-prop": "ansiyellow",
+        "ls-dir": "ansiblue",
+        # dir
+        "dir-regular": "ansiwhite",
+        "dir-getter": "ansigreen",
+        "dir-setter": "ansiyellow",
+        "dir-signal": "ansipurple",
         # Prompt.
         "path": "ansibrightblue",
         "path-invalid": "ansibrightred",
@@ -29,88 +38,158 @@ style = Style.from_dict(
 )
 
 
-async def run(url: str) -> None:
-    shvclient = await ValueClient.connect(RpcUrl.parse(url))
+async def run(config: CliConfig) -> None:
+    """Loop to run interactive CLI session."""
+    shvclient = await SHVClient.connect(config.url)
     if shvclient is None:
         print("Unable to connect")
         return
-    config = _Config()
+    assert isinstance(shvclient, SHVClient)
 
-    histfile = Path.home() / ".shvcli.history"
+    histfile = pathlib.Path.home() / ".shvcli.history"
     if not histfile.exists():
         with histfile.open("w") as _:
             pass
 
-    cpth = PurePosixPath("/")
+    completer = CliCompleter(shvclient, config)
+
     session: PromptSession = PromptSession(
         history=FileHistory(str(histfile)),
         style=style,
+        completer=completer,
     )
     while True:
         try:
             with patch_stdout():
                 result = await session.prompt_async(
-                    [("class:path", str(cpth)[1:]), ("class:prompt", "> ")]
+                    [
+                        (
+                            "class:path-invalid"
+                            if shvclient.tree.get_path(config.path) is None
+                            else "class:path",
+                            config.shvpath(),
+                        ),
+                        ("class:prompt", "> "),
+                    ]
                 )
         except (EOFError, KeyboardInterrupt):
             return
 
-        param: SHVType = None
-        if " " in result:
-            result, strparam = result.split(maxsplit=1)
-            try:
-                param = Cpon.unpack(strparam)
-            except (ValueError, EOFError):
-                print("Invalid CPON provided as parameter.")
-                continue
-        path = ""
-        method = ""
-        if ":" in result:
-            path, method = result.split(":", maxsplit=1)
-        else:
-            method = result
+        items = parse_line(result)
 
-        if method:
+        if items.method:
             try:
-                await call_method(
-                    shvclient, config, str(cpth / path)[1:], method, param
-                )
+                await call_method(shvclient, config, items)
             except RpcError as exc:
                 print(f"{type(exc).__name__}: {exc.message}")
         else:
-            cpth /= path
+            config.path /= items.path
 
 
-async def call_method(
-    shvclient: SimpleClient, config: _Config, path: str, method: str, param: SHVType
-) -> None:
-    if method.startswith("!"):
-        if method[1:] in ("h", "help"):
-            print("Available internal methods:")
+async def call_method(shvclient: SHVClient, config: CliConfig, items: CliItems) -> None:
+    """Handle method call."""
+    if items.method.startswith("!"):
+        if items.method in ("!h", "!help"):
+            print("Available internal methods (all prefixed with '!'):")
+            print("  tree|t")
+            print("    Print tree of nodes discovered in this session.")
             print("  raw toggle|on|off")
-            print("    Switch between interpreted or raw ls and dir methods.")
-        elif method[1:] == "raw":
-            if param in (None, "toggle"):
-                config.raw = not config.raw
-            elif param == "on":
-                config.raw = True
-            elif param == "off":
-                config.raw = False
-            else:
-                print(f"Invalid argument to 'raw': {Cpon.pack(param).decode()}")
-        else:
-            print(f"Invalid internal method: {method}")
-    elif method == "ls" and param is None and not config.raw:
-        print(
-            " ".join(n if " " not in n else f'"{n}"' for n in await shvclient.ls(path))
-        )
-    elif method == "dir" and param is None and not config.raw:
-        # TODO use colors to signal info about methods
-        print(
-            " ".join(
-                n.name if " " not in n.name else f'"{n.name}"'
-                for n in await shvclient.dir(path)
+            print("    Switch between interpreted or raw 'ls' and 'dir' methods.")
+            print("  autoprobe toggle|on|off")
+            print(
+                "    Configure if automatic discovery of methods and nodes on "
+                + "completion should be performed."
             )
+            print("  d|debug toggle|on|off")
+            print("    Switch between enabled and disabled debug output.")
+        elif items.method in ("!t", "!tree"):
+            print_node_tree(shvclient.tree, [])
+        elif items.method == "!raw":
+            config.raw = config.toggle(items.param_raw, config.raw)
+        elif items.method == "!autoprobe":
+            config.autoprobe = config.toggle(items.param_raw, config.autoprobe)
+        elif items.method in ("!d", "!debug"):
+            config.debug_output = config.toggle(items.param_raw, config.debug_output)
+        else:
+            print(f"Invalid internal method: {items.method}")
+        return
+    valid_param = True
+    try:
+        param = items.param
+    except (ValueError, EOFError):
+        valid_param = False
+    nonnullparam = valid_param and param is not None
+    if items.method == "ls" and not nonnullparam and not config.raw:
+        shvpath = config.shvpath([items.path, items.param_raw])
+        node = shvclient.tree.get_path(shvpath)
+        print_formatted_text(
+            FormattedText(
+                intersperse(
+                    ("", " "),
+                    (ls_node_format(node, n) for n in await shvclient.ls(shvpath)),
+                )
+            ),
+            style=style,
+        )
+    elif items.method == "dir" and not nonnullparam and not config.raw:
+        print_formatted_text(
+            FormattedText(
+                intersperse(
+                    ("", " "),
+                    (
+                        dir_method_format(d)
+                        for d in await shvclient.dir(
+                            config.shvpath([items.path, items.param_raw])
+                        )
+                    ),
+                )
+            ),
+            style=style,
         )
     else:
-        print(Cpon.pack(await shvclient.call(path, method, param)).decode())
+        print(Cpon.pack(await shvclient.call(items.path, items.method, param)).decode())
+
+
+def ls_node_format(node: Node | None, name: str) -> tuple[str, str]:
+    """Print format for single node info."""
+    nodestyle = "dot" if name.startswith(".") else "regular"
+    if node is not None and (subnode := node.get(name, None)) is not None:
+        if "get" in subnode.methods:
+            nodestyle = "prop"
+        elif subnode.nodes:
+            nodestyle = "dir"
+    return (
+        f"class:ls-{nodestyle}",
+        f'"{name}"' if any(c in name for c in string.whitespace) else name,
+    )
+
+
+def dir_method_format(method: RpcMethodDesc) -> tuple[str, str]:
+    """Print format for single method info."""
+    methstyle = "regular"
+    if RpcMethodFlags.SIGNAL in method.flags:
+        methstyle = "signal"
+    elif RpcMethodFlags.SETTER in method.flags:
+        methstyle = "setter"
+    elif RpcMethodFlags.GETTER in method.flags:
+        methstyle = "getter"
+    name = method.name
+    return (
+        f"class:dir-{methstyle}",
+        f'"{name}"' if any(c in name for c in string.whitespace) else name,
+    )
+
+
+def print_node_tree(node: Node, cols: list[bool]) -> None:
+    """Print tree discovered in SHV client."""
+    for name, hasnext in lookahead(node):
+        print_formatted_text(
+            FormattedText(
+                itertools.chain(
+                    (("", "│ " if c else "  ") for c in cols),
+                    iter([("", "├─" if hasnext else "└─"), ls_node_format(node, name)]),
+                )
+            ),
+            style=style,
+        )
+        print_node_tree(node[name], [*cols, hasnext])

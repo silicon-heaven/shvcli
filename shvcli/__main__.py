@@ -1,13 +1,23 @@
 """Implementation of command line application."""
 import argparse
 import asyncio
+import logging
+
+from shv import RpcUrl
 
 from .cli import run
+from .config import CliConfig
 
 
 def parse_args() -> argparse.Namespace:
     """Parse passed arguments and return result."""
     parser = argparse.ArgumentParser(description="Silicon Heaven CLI")
+    parser.add_argument(
+        "-d",
+        "--debug",
+        action="store_true",
+        help="Enable logging that provides communication debug info.",
+    )
     parser.add_argument(
         "URL",
         nargs="?",
@@ -19,8 +29,11 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     """Application's entrypoint."""
+    logging.basicConfig(format="[%(asctime)s] [%(levelname)s] - %(message)s")
     args = parse_args()
-    asyncio.run(run(args.URL))
+    config = CliConfig(RpcUrl.parse(args.URL))
+    config.debug_output = args.debug
+    asyncio.run(run(config))
 
 
 if __name__ == "__main__":
