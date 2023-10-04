@@ -1,4 +1,5 @@
 """Command line interface."""
+import functools
 import itertools
 import pathlib
 import string
@@ -83,7 +84,7 @@ async def run(config: CliConfig) -> None:
             except RpcError as exc:
                 print(f"{type(exc).__name__}: {exc.message}")
         else:
-            config.path /= items.path
+            config.path = config.sanitpath(config.path / items.path)
 
 
 async def call_method(shvclient: SHVClient, config: CliConfig, items: CliItems) -> None:

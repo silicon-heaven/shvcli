@@ -48,7 +48,7 @@ class CliConfig:
                 lambda p, v: p / v, suffix, pathlib.PurePosixPath()
             )
             assert isinstance(suffix, pathlib.PurePosixPath)
-        return str(self.path / suffix)[1:]
+        return str(self.sanitpath(self.path / suffix))[1:]
 
     @staticmethod
     def toggle(op: str, state: bool) -> bool:
@@ -61,3 +61,12 @@ class CliConfig:
             return False
         print(f"Invalid argument: {op}")
         return state
+
+    @staticmethod
+    def sanitpath(path: pathlib.PurePosixPath) -> pathlib.PurePosixPath:
+        """Remove '..' and '.' from path."""
+        return functools.reduce(
+            lambda p, v: p.parent if v == ".." else p if v == "." else p / v,
+            path.parts,
+            pathlib.PurePosixPath(),
+        )
