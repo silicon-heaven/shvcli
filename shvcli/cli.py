@@ -150,7 +150,11 @@ async def call_method(shvclient: SHVClient, config: CliConfig, items: CliItems) 
             style=style,
         )
     else:
-        print(Cpon.pack(await shvclient.call(items.path, items.method, param)).decode())
+        print(
+            Cpon.pack(
+                await shvclient.call(config.shvpath(items.path), items.method, param)
+            ).decode()
+        )
 
 
 def ls_node_format(node: Node | None, name: str) -> tuple[str, str]:
