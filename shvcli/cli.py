@@ -150,6 +150,8 @@ async def call_method(shvclient: SHVClient, config: CliConfig, items: CliItems) 
             ),
             style=style,
         )
+    elif not valid_param:
+        print(f"Invalid CPON format of parameter: {items.param_raw}")
     else:
         print(
             Cpon.pack(
