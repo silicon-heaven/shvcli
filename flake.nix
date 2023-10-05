@@ -14,6 +14,10 @@
     with flake-utils.lib;
     with nixpkgs.lib; let
       pyproject = trivial.importTOML ./pyproject.toml;
+      src = builtins.path {
+        path = ./.;
+        filter = path: type: ! hasSuffix ".nix" path;
+      };
       attrList = attr: list: attrValues (getAttrs list attr);
 
       requires = p: attrList p pyproject.project.dependencies;
@@ -22,40 +26,21 @@
         attrList p pyproject.project.optional-dependencies.lint
         ++ [p.build p.twine];
 
-      pypkgs-shvcli = {
-        buildPythonPackage,
-        pipBuildHook,
-        setuptools,
-        pytestCheckHook,
-        pythonPackages,
-        sphinxHook,
-      }:
-        buildPythonPackage {
+      shvcli = {python3Packages}:
+        python3Packages.buildPythonApplication {
           pname = pyproject.project.name;
           inherit (pyproject.project) version;
           format = "pyproject";
-          src = builtins.path {
-            path = ./.;
-            filter = path: type: ! hasSuffix ".nix" path;
-          };
+          inherit src;
           outputs = ["out" "doc"];
-          propagatedBuildInputs = requires pythonPackages;
-          nativeBuildInputs = [sphinxHook] ++ requires-docs pythonPackages;
+          propagatedBuildInputs = requires python3Packages;
+          nativeBuildInputs = [python3Packages.sphinxHook] ++ requires-docs python3Packages;
         };
     in
       {
         overlays = {
           shvcli = final: prev: {
-            python3 = prev.python3.override (oldAttrs: let
-              prevOverride = oldAttrs.packageOverrides or (_: _: {});
-            in {
-              packageOverrides = composeExtensions prevOverride (
-                pyself: pysuper: {
-                  shvcli = pyself.callPackage pypkgs-shvcli {};
-                }
-              );
-            });
-            python3Packages = final.python3.pkgs;
+            shvcli = final.callPackage shvcli {};
           };
           default = composeManyExtensions [
             pyshv.overlays.default
@@ -66,9 +51,9 @@
       // eachDefaultSystem (system: let
         pkgs = nixpkgs.legacyPackages.${system}.extend self.overlays.default;
       in {
-        packages = rec {
-          inherit (pkgs.python3Packages) shvcli;
-          default = shvcli;
+        packages = {
+          inherit (pkgs) shvcli;
+          default = pkgs.shvcli;
         };
         legacyPackages = pkgs;
 
