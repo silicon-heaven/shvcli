@@ -31,7 +31,8 @@ def main() -> None:
     """Application's entrypoint."""
     logging.basicConfig(format="[%(asctime)s] [%(levelname)s] - %(message)s")
     args = parse_args()
-    config = CliConfig(RpcUrl.parse(args.URL))
+    config = CliConfig()
+    config.url = args.URL
     config.debug_output = args.debug
     asyncio.run(run(config))
 

@@ -1,9 +1,11 @@
 """Configuration state of the CLI."""
 import collections.abc
+import configparser
 import dataclasses
 import functools
 import logging
 import pathlib
+import subprocess
 import typing
 
 from shv import RpcUrl
@@ -13,8 +15,35 @@ from shv import RpcUrl
 class CliConfig:
     """Configuration passed around in CLI implementation."""
 
-    url: RpcUrl
-    """SHV RPC URL where client should connect to."""
+    hosts: dict[str, RpcUrl] = dataclasses.field(default_factory=dict)
+    """Hosts that can be used instead of URL."""
+
+    hosts_shell: dict[str, str] = dataclasses.field(default_factory=dict)
+    """Hosts that can be used instead of URL but URL is generated using shell."""
+
+    __url: RpcUrl = RpcUrl("localhost")
+
+    @property
+    def url(self) -> RpcUrl:
+        """SHV RPC URL where client should connect to."""
+        return self.__url
+
+    @url.setter
+    def url(self, value: RpcUrl | str) -> None:
+        if isinstance(value, str):
+            if value in self.hosts:
+                value = self.hosts[value]
+            elif value in self.hosts_shell:
+                strurl = subprocess.run(
+                    f"printf '%s' \"{self.hosts_shell[value]}\"",
+                    shell=True,
+                    stdout=subprocess.PIPE,
+                    check=True,
+                ).stdout.decode()
+                value = RpcUrl.parse(strurl)
+            else:
+                value = RpcUrl.parse(value)
+        self.__url = value
 
     path: pathlib.PurePosixPath = pathlib.PurePosixPath("/")
     """Current path we are working relative to."""
@@ -35,6 +64,21 @@ class CliConfig:
     @debug_output.setter
     def debug_output(self, value: bool) -> None:
         logging.root.setLevel(logging.DEBUG if value else logging.WARNING)
+
+    def __post_init__(self) -> None:
+        """Load configuration."""
+        config = configparser.ConfigParser()
+        config.read(["/etc/shvcli.ini", pathlib.Path.home() / ".shvcli.ini"])
+        for secname, sec in config.items():
+            if secname == "DEFAULT":
+                for name, _ in sec.items():
+                    raise ValueError(f"Invalid configuration: {secname}.{name}")
+            elif secname == "hosts":
+                self.hosts.update({k: RpcUrl.parse(v) for k, v in sec.items()})
+            elif secname == "hosts-shell":
+                self.hosts_shell.update(sec.items())
+            else:
+                raise ValueError(f"Unknown configuration section: {sec}")
 
     def shvpath(
         self,
