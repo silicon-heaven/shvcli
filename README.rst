@@ -38,6 +38,73 @@ An example of usage:
   >
 
 
+Configuration file
+------------------
+
+Tool reads configuration from files ``/etc/shvcli.ini`` and ``~/.shvcli.ini``.
+They are in INI file format and the following sections are supported:
+
+**hosts**: That provides mapping from some name to RPC URL.
+
+**hosts-shell**: That is same as **hosts** with exception that URL is passed
+through your local Shell to expand any variables or command substitutions.
+
+
+Example configuration file:
+
+.. code-block:: ini
+
+   [hosts]
+   localhost = tcp://test@localhost?password=test
+
+   [hosts-shell]
+   company = tcp://smith@company.example.org?password=$(pass company/shv)
+
+
+Internal methods
+----------------
+
+CLI provides few additional methods that can be called on top of the ones
+provided by SHV network. They are all prefixed with ``!`` to clearly distinguish
+them. They provide a way to control CLI as well as to get insight into the
+environment you are running in.
+
+**tree|t**: This prints tree of known nodes from current path prefix. This is
+not all nodes present in the SHV network. This is only what was discovered so
+far (and cached thus it can be also old). You can use it to visualize the tree
+of nodes you are working with as well as to get insight into the state of the
+cache.
+
+**raw**: ``ls`` and ``dir`` methods are handled in a special way as described in
+the next chapter. This special handling can be possibly decremental if you are
+trying to debug something specific with these functions and this this provides a
+way to disable this. Note that caching and discovery of the nodes will stop
+working once you are in the raw mode and thus you will no longer get the
+advantage of that.
+
+**autoprobe**: The default behavior is to use ``ls`` and ``dir`` methods to
+discover nodes and methods on autocompletion. That is very convenient but it
+also generates traffic that is not directly visible to you. If you prefer not to
+do that for any reason then you can use this to disable this behavior.
+
+**debug|d**: This controls logging facilities of SHVCLI itself. With this you
+can get info about all messages sent and received as well as other debug info.
+It is beneficial to disable the **autoprobe** once you disable debug because
+otherwise the output on the CLI will be mangled on completion.
+
+
+Special methods ``ls`` and ``dir``
+----------------------------------
+
+These methods are handled in a special way to allow easy discovery of the SHV
+nodes. Their output is processed and displayed in easy to read format but not in
+the fullest content.
+
+Their parameter is also handled in a special way. It is considered to be
+additional path suffix unless it is a valid CPON. This is allowed to match the
+common shells.
+
+
 Documentation
 -------------
 
