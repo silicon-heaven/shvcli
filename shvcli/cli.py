@@ -107,7 +107,8 @@ async def call_method(shvclient: SHVClient, config: CliConfig, items: CliItems) 
                 + "(disable of autoprobe is suggested)."
             )
         elif items.method in ("!t", "!tree"):
-            print_node_tree(shvclient.tree, [])
+            if (node := shvclient.tree.get_path(config.path)) is not None:
+                print_node_tree(node, [])
         elif items.method == "!raw":
             config.raw = config.toggle(items.param_raw, config.raw)
         elif items.method == "!autoprobe":
