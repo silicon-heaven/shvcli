@@ -8,6 +8,7 @@ from shv import (
     RpcError,
     RpcMessage,
     RpcMethodDesc,
+    RpcMethodFlags,
     RpcMethodNotFoundError,
     SHVType,
     SimpleClient,
@@ -112,7 +113,8 @@ class SHVClient(SimpleClient):
             self.tree.invalid_path(path)
             raise exc
         node = self.tree.valid_path(path)
-        node.methods = {d.name for d in res}
+        # Note: We do not remmeber signals because they are not callable
+        node.methods = {d.name for d in res if RpcMethodFlags.SIGNAL not in d.flags}
         node.methods_probed = True
         return res
 
