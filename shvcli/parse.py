@@ -36,6 +36,15 @@ class CliItems:
             return None
         return Cpon.unpack(self.param_raw)
 
+    def param_method(self) -> tuple[str, str | None]:
+        """Interpret parameter as path and method."""
+        if ":" in self.param_raw:
+            path, method = self.param_raw.split(":", maxsplit=1)
+            return path, method
+        if "/" in self.param_raw:
+            return self.param_raw, None
+        return "", self.param_raw
+
 
 def parse_line(line: str) -> CliItems:
     """Parse CLI line."""

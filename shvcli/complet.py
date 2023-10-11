@@ -26,6 +26,12 @@ class CliCompleter(Completer):
     INTERNAL = {
         "!h": None,
         "!help": None,
+        "!sub": None,
+        "!subscribe": None,
+        "!usub": None,
+        "!unsubscribe": None,
+        "!subs": None,
+        "!subscriptions": None,
         "!t": None,
         "!tree": None,
         "!raw": TOGGLE_OPTS,
@@ -49,8 +55,18 @@ class CliCompleter(Completer):
         if CliFlags.COMPLETE_CALL in items.flags:
             if (desc := self.INTERNAL.get(items.method, None)) is not None:
                 yield from _comp_from(items.param_raw, desc)
-            if items.method in ("ls", "dir") and not items.param_raw.startswith('"'):
+            if items.method in ("ls", "dir"):
                 yield from self._complete_paths(items)
+            elif items.method in ("!sub", "!subscribe"):
+                if ":" in items.param_raw:
+                    path, method = items.param_raw.split(":", maxsplit=1)
+                    node = self.shvclient.tree.get_path(
+                        self.config.shvpath(items.path + "/" + path)
+                    )
+                    if node is not None:
+                        yield from _comp_from(method, node.signals)
+                else:
+                    yield from self._complete_paths(items)
             return  # Nothing to complete because we can't complete CPON
 
         # Paths
@@ -104,7 +120,7 @@ class CliCompleter(Completer):
         items = parse_line(document.text)
         if self.config.autoprobe and (
             CliFlags.COMPLETE_CALL not in items.flags
-            or (items.method in ("ls", "dir") and not items.param_raw.startswith('"'))
+            or items.method in ("ls", "dir", "!sub", "!subscribe")
         ):
             if CliFlags.HAS_COLON in items.flags:
                 await self.shvclient.probe(self.config.shvpath(items.path))

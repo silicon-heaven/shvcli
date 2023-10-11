@@ -1,5 +1,5 @@
 """Command line interface."""
-import functools
+import collections.abc
 import itertools
 import pathlib
 import string
@@ -9,7 +9,7 @@ from prompt_toolkit.formatted_text import FormattedText
 from prompt_toolkit.history import FileHistory
 from prompt_toolkit.patch_stdout import patch_stdout
 from prompt_toolkit.styles import Style
-from shv import RpcError, RpcMethodDesc, RpcMethodFlags, RpcUrl
+from shv import RpcError, RpcMethodDesc, RpcMethodFlags, RpcSubscription
 from shv.cpon import Cpon
 
 from .client import Node, SHVClient
@@ -28,6 +28,7 @@ style = Style.from_dict(
         "ls-dir": "ansiblue",
         # dir
         "dir-regular": "ansiwhite",
+        "dir-ls": "ansibrightblack",
         "dir-getter": "ansigreen",
         "dir-setter": "ansiyellow",
         "dir-signal": "ansipurple",
@@ -92,6 +93,12 @@ async def call_method(shvclient: SHVClient, config: CliConfig, items: CliItems) 
     if items.method.startswith("!"):
         if items.method in ("!h", "!help"):
             print("Available internal methods (all prefixed with '!'):")
+            print("  subscribe|sub [PATH:METHOD]")
+            print("    Add new subscribe.")
+            print("  unsubscribe|usub [PATH:METHOD]")
+            print("    Unsubscribe existing subscription.")
+            print("  subscriptions|subs")
+            print("    List current subscriptions.")
             print("  tree|t")
             print("    Print tree of nodes discovered in this session.")
             print("  raw toggle|on|off")
@@ -106,6 +113,18 @@ async def call_method(shvclient: SHVClient, config: CliConfig, items: CliItems) 
                 "    Switch between enabled and disabled debug output "
                 + "(disable of autoprobe is suggested)."
             )
+        elif items.method in ("!sub", "!subscribe"):
+            path, method = items.param_method()
+            await shvclient.subscribe(
+                RpcSubscription(config.shvpath(path), method or "")
+            )
+        elif items.method in ("!usub", "!unsubscribe"):
+            path, method = items.param_method()
+            await shvclient.unsubscribe(
+                RpcSubscription(config.shvpath(path), method or "")
+            )
+        elif items.method in ("!subs", "!subscriptions"):
+            print(await shvclient.call(".app/broker/currentClient", "subscriptions"))
         elif items.method in ("!t", "!tree"):
             if (node := shvclient.tree.get_path(config.path)) is not None:
                 print_node_tree(node, [])
@@ -118,13 +137,7 @@ async def call_method(shvclient: SHVClient, config: CliConfig, items: CliItems) 
         else:
             print(f"Invalid internal method: {items.method}")
         return
-    valid_param = True
-    try:
-        param = items.param
-    except (ValueError, EOFError):
-        valid_param = False
-    nonnullparam = valid_param and param is not None
-    if items.method == "ls" and not nonnullparam and not config.raw:
+    if items.method == "ls" and not config.raw:
         shvpath = config.shvpath([items.path, items.param_raw])
         node = shvclient.tree.get_path(shvpath)
         print_formatted_text(
@@ -136,7 +149,7 @@ async def call_method(shvclient: SHVClient, config: CliConfig, items: CliItems) 
             ),
             style=style,
         )
-    elif items.method == "dir" and not nonnullparam and not config.raw:
+    elif items.method == "dir" and not config.raw:
         print_formatted_text(
             FormattedText(
                 intersperse(
@@ -151,14 +164,19 @@ async def call_method(shvclient: SHVClient, config: CliConfig, items: CliItems) 
             ),
             style=style,
         )
-    elif not valid_param:
-        print(f"Invalid CPON format of parameter: {items.param_raw}")
     else:
-        print(
-            Cpon.pack(
-                await shvclient.call(config.shvpath(items.path), items.method, param)
-            ).decode()
-        )
+        try:
+            param = items.param
+        except (ValueError, EOFError):
+            print(f"Invalid CPON format of parameter: {items.param_raw}")
+        else:
+            print(
+                Cpon.pack(
+                    await shvclient.call(
+                        config.shvpath(items.path), items.method, param
+                    )
+                ).decode()
+            )
 
 
 def ls_node_format(node: Node | None, name: str) -> tuple[str, str]:
@@ -184,6 +202,8 @@ def dir_method_format(method: RpcMethodDesc) -> tuple[str, str]:
         methstyle = "setter"
     elif RpcMethodFlags.GETTER in method.flags:
         methstyle = "getter"
+    elif method.name in ("ls", "dir"):
+        methstyle = "ls"
     name = method.name
     return (
         f"class:dir-{methstyle}",

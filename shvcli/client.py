@@ -23,6 +23,7 @@ class Node(collections.abc.Mapping):
         """Initialize the node."""
         self.nodes: dict[str, Node] = {}
         self.methods: set[str] = {"ls", "dir"}
+        self.signals: set[str] = set()
         self.nodes_probed = False
         self.methods_probed = False
 
@@ -78,18 +79,19 @@ class Node(collections.abc.Mapping):
 class SHVClient(SimpleClient):
     """Our client caching SHV Tree and reporting received signals."""
 
-    def __init__(self, client: RpcClient, client_id: int | None) -> None:
+    def __init__(self, client: RpcClient) -> None:
         """Initialize client and set create reference to tree."""
         self.tree = Node()
         self.tree.valid_path(".app")
-        super().__init__(client, client_id)
+        super().__init__(client)
 
     async def _message(self, msg: RpcMessage) -> None:
         await super()._message(msg)
         if msg.is_signal():
-            print(
-                f"{msg.shv_path()}:{msg.method()}: {Cpon.pack(msg.params()).decode()}"
-            )
+            method = msg.method()
+            assert method is not None
+            self.tree.valid_path(msg.shv_path() or "").signals.add(method)
+            print(f"{msg.shv_path()}:{method}: {Cpon.pack(msg.param()).decode()}")
 
     async def ls(self, path: str) -> list[str]:
         """List same as in ValueClient but with result being preserved in tree."""
@@ -105,27 +107,27 @@ class SHVClient(SimpleClient):
 
         return res
 
-    async def dir(self, path: str) -> list[RpcMethodDesc]:
+    async def dir(self, path: str, details: bool = False) -> list[RpcMethodDesc]:
         """List methods same as in ValueClient but result is being preserved in tree."""
         try:
-            res = await super().dir(path)
+            res = await super().dir(path, details)
         except RpcError as exc:
             self.tree.invalid_path(path)
             raise exc
         node = self.tree.valid_path(path)
-        # Note: We do not remmeber signals because they are not callable
         node.methods = {d.name for d in res if RpcMethodFlags.SIGNAL not in d.flags}
+        node.signals = {d.name for d in res if RpcMethodFlags.SIGNAL in d.flags}
         node.methods_probed = True
         return res
 
-    async def call(self, path: str, method: str, params: SHVType = None) -> SHVType:
+    async def call(self, path: str, method: str, param: SHVType = None) -> SHVType:
         """Perform call same as ValueClient.
 
         This uses every call to get insite into existence of method and node and records
         that in the tree.
         """
         try:
-            res = await super().call(path, method, params)
+            res = await super().call(path, method, param)
         except RpcMethodNotFoundError as exc:
             raise exc
         except RpcError as exc:
