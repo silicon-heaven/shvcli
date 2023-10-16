@@ -74,11 +74,11 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1696757521,
-        "narHash": "sha256-cfgtLNCBLFx2qOzRLI6DHfqTdfWI+UbvsKYa3b3fvaA=",
+        "lastModified": 1697379843,
+        "narHash": "sha256-RcnGuJgC2K/UpTy+d32piEoBXq2M+nVFzM3ah/ZdJzg=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "2646b294a146df2781b1ca49092450e8a32814e1",
+        "rev": "12bdeb01ff9e2d3917e6a44037ed7df6e6c3df9d",
         "type": "github"
       },
       "original": {
@@ -121,11 +121,11 @@
         "nixpkgs": "nixpkgs_3"
       },
       "locked": {
-        "lastModified": 1697016216,
-        "narHash": "sha256-KYl62eZzAklnkEtpFmFIWnG81rCniz+xEUlx3Cr1G0s=",
+        "lastModified": 1697451872,
+        "narHash": "sha256-NCuluaf3t10au29k1QyfoAjj5Jh6BZN5YjXjQMpf5Xc=",
         "ref": "refs/heads/master",
-        "rev": "7d588b8b0693583deb38cb65fefd8d11c58435df",
-        "revCount": 114,
+        "rev": "4a08ff9046f8d1283b211b7572ae350ed6798975",
+        "revCount": 139,
         "type": "git",
         "url": "https://gitlab.com/elektroline-predator/pyshv.git"
       },

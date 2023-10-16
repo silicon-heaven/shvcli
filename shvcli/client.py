@@ -87,11 +87,11 @@ class SHVClient(SimpleClient):
 
     async def _message(self, msg: RpcMessage) -> None:
         await super()._message(msg)
-        if msg.is_signal():
-            method = msg.method()
+        if msg.is_signal:
+            method = msg.method
             assert method is not None
-            self.tree.valid_path(msg.shv_path() or "").signals.add(method)
-            print(f"{msg.shv_path()}:{method}: {Cpon.pack(msg.param()).decode()}")
+            self.tree.valid_path(msg.path or "").signals.add(method)
+            print(f"{msg.path}:{method}: {Cpon.pack(msg.param).decode()}")
 
     async def ls(self, path: str) -> list[str]:
         """List same as in ValueClient but with result being preserved in tree."""
