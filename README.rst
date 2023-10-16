@@ -21,21 +21,23 @@ An example of usage:
 
 .. code-block:: console
 
-  > ls
-  [".app","test"]
-  > .app:
-  .app> dir
-  [{"access":"bws","flags":0,"name":"dir","signature":3},{"access":"bws","flags":0,"name":"ls","signature":3},{"access":"bws","flags":2,"name":"shvVersionMajor","signature":2},{"access":"bws","flags":2,"name":"shvVersionMinor","signature":2},{"access":"bws","flags":2,"name":"appName","signature":2},{"access":"bws","flags":2,"name":"appVersion","signature":2},{"access":"bws","flags":0,"name":"ping","signature":0}]
-  .app> appName
-  "pyshvbroker"
-  .app> ls
-  ["broker"]
-  .app> broker:dir
-  [{"access":"bws","flags":0,"name":"dir","signature":3},{"access":"bws","flags":0,"name":"ls","signature":3},{"access":"srv","flags":0,"name":"clientInfo","signature":3},{"access":"srv","flags":2,"name":"clients","signature":2},{"access":"srv","flags":0,"name":"disconnectClient","signature":1},{"access":"rd","flags":2,"name":"mountPoints","signature":2}]
-  .app> broker:ls
-  ["currentClient","client","clientInfo"]
-  .app> /:
-  >
+   > ls
+   .app
+   > dir
+   dir ls lschng
+   > .app:
+   .app> dir
+   dir ls lschng shvVersionMajor shvVersionMinor name version ping
+   .app> name
+   "pyshvbroker"
+   .app> broker:ls
+   currentClient client clientInfo
+   .app> ls broker
+   currentClient client clientInfo
+   .app> broker/currentClient:info
+   {"clientId":0,"mountPoint":null,"subscriptions":[],"userName":"admin"}
+   .app> /:
+   >
 
 
 Configuration file
@@ -68,6 +70,20 @@ CLI provides few additional methods that can be called on top of the ones
 provided by SHV network. They are all prefixed with ``!`` to clearly distinguish
 them. They provide a way to control CLI as well as to get insight into the
 environment you are running in.
+
+**subscribe|sub**: Add new subscribe. Shortcut to the call of
+``.app/broker/currentClient:subscribe`` that accepts arguments in more convenient
+way (you need to use Map if you call that method directly). The argument has
+same format such as method calls in this tool, that means ``PATH:METHOD`` where
+``METHOD`` can be left out to match all methods. Pattern subscribes are not
+supporter, yet.
+
+**unsubscribe|usub**: Unsubscribe existing subscription. It is reverse operation
+to the **subscribe** and same remarks apply here as well. It is a shortcut to
+the call of ``.app/broker/currentClient:unsubscribe``
+
+**subscriptions|sub**: List current subscriptions. This is shortcut to call
+``.app/broker/currentClient:subscriptions``.
 
 **tree|t**: This prints tree of known nodes from current path prefix. This is
 not all nodes present in the SHV network. This is only what was discovered so
