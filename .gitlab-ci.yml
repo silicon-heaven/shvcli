@@ -125,15 +125,3 @@ gitlab-pypi:
   script:
     - nix develop --quiet -c python3 -m build
     - TWINE_PASSWORD=$CI_JOB_TOKEN TWINE_USERNAME=gitlab-ci-token nix develop --quiet -c twine upload --repository-url ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/pypi dist/*
-
-pages:
-  stage: deploy
-  extends: .nix
-  rules:
-    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH
-  needs: ["devenv"]
-  script:
-    - nix develop --quiet -c sphinx-build docs public
-  artifacts:
-    paths:
-    - public

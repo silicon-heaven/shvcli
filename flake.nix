@@ -21,7 +21,6 @@
       attrList = attr: list: attrValues (getAttrs list attr);
 
       requires = p: attrList p pyproject.project.dependencies;
-      requires-docs = p: attrList p pyproject.project.optional-dependencies.docs;
       requires-dev = p:
         attrList p pyproject.project.optional-dependencies.lint
         ++ [p.build p.twine];
@@ -32,9 +31,7 @@
           inherit (pyproject.project) version;
           format = "pyproject";
           inherit src;
-          outputs = ["out" "doc"];
           propagatedBuildInputs = requires python3Packages;
-          nativeBuildInputs = [python3Packages.sphinxHook] ++ requires-docs python3Packages;
         };
     in
       {
@@ -63,10 +60,8 @@
               editorconfig-checker
               gitlint
               (python3.withPackages (p:
-                [p.sphinx-autobuild]
-                ++ foldl (prev: f: prev ++ f p) [] [
+                foldl (prev: f: prev ++ f p) [] [
                   requires
-                  requires-docs
                   requires-dev
                 ]))
             ];

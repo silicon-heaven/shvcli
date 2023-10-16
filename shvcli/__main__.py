@@ -3,8 +3,6 @@ import argparse
 import asyncio
 import logging
 
-from shv import RpcUrl
-
 from .cli import run
 from .config import CliConfig
 

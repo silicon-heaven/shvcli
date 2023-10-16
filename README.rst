@@ -119,11 +119,3 @@ the fullest content.
 Their parameter is also handled in a special way. It is considered to be
 additional path suffix unless it is a valid CPON. This is allowed to match the
 common shells.
-
-
-Documentation
--------------
-
-The documentation is available in `docs` directory. You can build it using:
-
-    sphinx-build -b html docs docs-html

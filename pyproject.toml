@@ -21,10 +21,6 @@ dependencies = [
 repository = "https://gitlab.com/elektroline-predator/shvcli"
 
 [project.optional-dependencies]
-docs = [
-  "sphinx",
-  "sphinx_rtd_theme",
-]
 lint = [
   "black",
   "isort",
@@ -40,14 +36,11 @@ shvcli = "shvcli.__main__:main"
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools.packages.find]
-exclude = ["docs", "tests*"]
 [tool.setuptools.package-data]
 "*" = ["py.typed"]
 
 [tool.coverage.run]
 branch = true
-omit = ["tests/*"]
 [tool.coverage.report]
 exclude_lines = [
     "pragma: no cover",
@@ -59,7 +52,6 @@ profile = 'black'
 
 [tool.pylint.main]
 recursive = "y"
-ignore = ["tests", "docs"]
 fail-under = 9.5
 [tool.pylint.format]
 disable = [
@@ -85,4 +77,3 @@ warn_unreachable = true
 
 [tool.pydocstyle]
 convention = "pep257"
-match_dir = "(?!docs).*"

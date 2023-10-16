@@ -1,5 +1,4 @@
 """Command line interface."""
-import collections.abc
 import itertools
 import pathlib
 import string
