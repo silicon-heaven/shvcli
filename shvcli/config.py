@@ -21,7 +21,7 @@ class CliConfig:
     hosts_shell: dict[str, str] = dataclasses.field(default_factory=dict)
     """Hosts that can be used instead of URL but URL is generated using shell."""
 
-    __url: RpcUrl = RpcUrl("localhost")
+    __url: RpcUrl = dataclasses.field(default_factory=lambda: RpcUrl("localhost"))
 
     @property
     def url(self) -> RpcUrl:

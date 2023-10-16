@@ -54,19 +54,25 @@
         };
         legacyPackages = pkgs;
 
-        devShells = filterPackages system {
-          default = pkgs.mkShell {
-            packages = with pkgs; [
-              editorconfig-checker
-              gitlint
-              (python3.withPackages (p:
-                foldl (prev: f: prev ++ f p) [] [
-                  requires
-                  requires-dev
-                ]))
-            ];
+        devShells = let
+          mkShell = pythonX:
+            pkgs.mkShell {
+              packages = with pkgs; [
+                (pythonX.withPackages (p:
+                  foldl (prev: f: prev ++ f p) [] [
+                    requires
+                    requires-dev
+                  ]))
+                editorconfig-checker
+                gitlint
+              ];
+            };
+        in
+          filterPackages system {
+            default = mkShell pkgs.python3;
+            python310 = mkShell pkgs.python310;
+            python311 = mkShell pkgs.python311;
           };
-        };
 
         checks.default = self.packages.${system}.default;
 
