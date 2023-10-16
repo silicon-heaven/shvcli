@@ -1,6 +1,9 @@
 =====================================
 Silicon Heaven CLI access application
 =====================================
+.. image:: logo.svg
+   :align: right
+   :height: 128px
 
 This provides an easy to use CLI interfase to access the SHV network.
 
