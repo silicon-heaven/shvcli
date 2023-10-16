@@ -36,12 +36,12 @@
     in
       {
         overlays = {
-          shvcli = final: prev: {
+          noInherit = final: prev: {
             shvcli = final.callPackage shvcli {};
           };
           default = composeManyExtensions [
             pyshv.overlays.default
-            self.overlays.shvcli
+            self.overlays.noInherit
           ];
         };
       }
