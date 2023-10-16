@@ -4,6 +4,9 @@ Silicon Heaven CLI access application
 
 This provides an easy to use CLI interfase to access the SHV network.
 
+* `📕 Silicon Heaven protocol documentation <https://silicon-heaven.github.io/shv-doc/>`__
+* `📃 Sources <https://gitlab.com/elektroline-predator/shvcli>`__
+* `⁉️ Issue tracker <https://gitlab.com/elektroline-predator/shvcli/-/issues>`__
 
 Usage
 -----
