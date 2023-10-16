@@ -98,6 +98,8 @@ the call of ``.app/broker/currentClient:unsubscribe``
 **subscriptions|sub**: List current subscriptions. This is shortcut to call
 ``.app/broker/currentClient:subscriptions``.
 
+**cd**: Change current path prefix to given one even when there is no such node.
+
 **tree|t**: This prints tree of known nodes from current path prefix. This is
 not all nodes present in the SHV network. This is only what was discovered so
 far (and cached thus it can be also old). You can use it to visualize the tree

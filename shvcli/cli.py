@@ -84,7 +84,11 @@ async def run(config: CliConfig) -> None:
             except RpcError as exc:
                 print(f"{type(exc).__name__}: {exc.message}")
         else:
-            config.path = config.sanitpath(config.path / items.path)
+            newpath = config.sanitpath(config.path / items.path)
+            if await shvclient.path_is_valid(str(newpath)[1:]):
+                config.path = newpath
+            else:
+                print(f"Invalid path: {newpath}")
 
 
 async def call_method(shvclient: SHVClient, config: CliConfig, items: CliItems) -> None:
@@ -100,6 +104,8 @@ async def call_method(shvclient: SHVClient, config: CliConfig, items: CliItems) 
             print("    List current subscriptions.")
             print("  tree|t")
             print("    Print tree of nodes discovered in this session.")
+            print("  cd [PATH]")
+            print("    Change to given path even if it is invalid.")
             print("  raw toggle|on|off")
             print("    Switch between interpreted or raw 'ls' and 'dir' methods.")
             print("  autoprobe toggle|on|off")
@@ -127,6 +133,8 @@ async def call_method(shvclient: SHVClient, config: CliConfig, items: CliItems) 
         elif items.method in ("!t", "!tree"):
             if (node := shvclient.tree.get_path(config.path)) is not None:
                 print_node_tree(node, [])
+        elif items.method == "!cd":
+            config.path = config.path / items.path / items.param_raw
         elif items.method == "!raw":
             config.raw = config.toggle(items.param_raw, config.raw)
         elif items.method == "!autoprobe":

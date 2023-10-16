@@ -95,6 +95,7 @@ class SHVClient(SimpleClient):
 
     async def ls(self, path: str) -> list[str]:
         """List same as in ValueClient but with result being preserved in tree."""
+        res: list[str]
         try:
             res = await super().ls(path)
         except RpcError as exc:
@@ -109,6 +110,7 @@ class SHVClient(SimpleClient):
 
     async def dir(self, path: str, details: bool = False) -> list[RpcMethodDesc]:
         """List methods same as in ValueClient but result is being preserved in tree."""
+        res: list[RpcMethodDesc]
         try:
             res = await super().dir(path, details)
         except RpcError as exc:
@@ -150,3 +152,8 @@ class SHVClient(SimpleClient):
                 await self.ls(path)
         except RpcError:
             pass
+
+    async def path_is_valid(self, path: str) -> bool:
+        """Check if given path is valid by using ls command."""
+        pth, name = (path if "/" in path else f"/{path}").rsplit("/", maxsplit=1)
+        return name in await self.ls(pth)
