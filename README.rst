@@ -11,6 +11,13 @@ This provides an easy to use CLI interfase to access the SHV network.
 * `📃 Sources <https://gitlab.com/elektroline-predator/shvcli>`__
 * `⁉️ Issue tracker <https://gitlab.com/elektroline-predator/shvcli/-/issues>`__
 
+You can use ``pip`` to install ``shvcli`` from sources:
+
+.. code-block:: console
+
+   $ git clone https://gitlab.com/elektroline-predator/shvcli.git
+   $ pip install ./shvcli
+
 Usage
 -----
 
