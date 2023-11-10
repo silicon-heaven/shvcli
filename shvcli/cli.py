@@ -74,6 +74,7 @@ async def run(config: CliConfig) -> None:
                     ]
                 )
         except (EOFError, KeyboardInterrupt):
+            await shvclient.disconnect()
             return
 
         items = parse_line(result)
