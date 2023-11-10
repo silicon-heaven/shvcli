@@ -121,11 +121,11 @@
         "nixpkgs": "nixpkgs_3"
       },
       "locked": {
-        "lastModified": 1699605410,
-        "narHash": "sha256-U3TuELXlI8A1jYaAY0ckh0W9DcY2HXE0R2tZt5JtLio=",
+        "lastModified": 1699613638,
+        "narHash": "sha256-O5TfO6IjZAVWJ5qgp0v1ckDHm7h2k5jM6eoz2sO5FKc=",
         "ref": "refs/heads/master",
-        "rev": "0a1d9a17198487aa818f1f07b0b7dbd128f80261",
-        "revCount": 152,
+        "rev": "3c12df8c620bcbe5acf695d31a08f8973c6c0850",
+        "revCount": 154,
         "type": "git",
         "url": "https://gitlab.com/elektroline-predator/pyshv.git"
       },

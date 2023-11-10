@@ -85,6 +85,10 @@ class SHVClient(SimpleClient):
         self.tree.valid_path(".app")
         super().__init__(client)
 
+    async def _loop(self) -> None:
+        await super()._loop()
+        self.client.disconnect()
+
     async def _message(self, msg: RpcMessage) -> None:
         await super()._message(msg)
         if msg.is_signal:

@@ -1,4 +1,5 @@
 """Command line interface."""
+import asyncio
 import itertools
 import pathlib
 import string
@@ -39,14 +40,8 @@ style = Style.from_dict(
 )
 
 
-async def run(config: CliConfig) -> None:
-    """Loop to run interactive CLI session."""
-    shvclient = await SHVClient.connect(config.url)
-    if shvclient is None:
-        print("Unable to connect")
-        return
-    assert isinstance(shvclient, SHVClient)
-
+async def _app(config: CliConfig, shvclient: SHVClient) -> None:
+    """CLI application."""
     histfile = pathlib.Path.home() / ".shvcli.history"
     if not histfile.exists():
         with histfile.open("w") as _:
@@ -74,7 +69,7 @@ async def run(config: CliConfig) -> None:
                     ]
                 )
         except (EOFError, KeyboardInterrupt):
-            await shvclient.disconnect()
+            shvclient.client.disconnect()
             return
 
         items = parse_line(result)
@@ -90,6 +85,22 @@ async def run(config: CliConfig) -> None:
                 config.path = newpath
             else:
                 print(f"Invalid path: {newpath}")
+
+
+async def run(config: CliConfig) -> None:
+    """Loop to run interactive CLI session."""
+    shvclient = await SHVClient.connect(config.url)
+    assert isinstance(shvclient, SHVClient)
+
+    clitask = asyncio.create_task(_app(config, shvclient))
+    await shvclient.client.wait_disconnect()
+    if not clitask.done():
+        print("Disconnected.")
+        clitask.cancel()
+    try:
+        await clitask
+    except asyncio.CancelledError:
+        pass
 
 
 async def call_method(shvclient: SHVClient, config: CliConfig, items: CliItems) -> None:
