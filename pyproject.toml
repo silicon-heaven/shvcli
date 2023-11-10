@@ -1,6 +1,6 @@
 [project]
 name = "shvcli"
-version = "0.0.0"
+version = "0.1.0"
 description = "Project Template Python"
 readme = "README.rst"
 license = {file = "LICENSE"}

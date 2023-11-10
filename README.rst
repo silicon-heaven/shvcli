@@ -1,22 +1,26 @@
 =====================================
 Silicon Heaven CLI access application
 =====================================
-.. image:: logo.svg
+.. image:: https://gitlab.com/elektroline-predator/shvcli/-/raw/master/logo.svg
    :align: right
    :height: 128px
 
 This provides an easy to use CLI interfase to access the SHV network.
 
-* `📕 Silicon Heaven protocol documentation <https://silicon-heaven.github.io/shv-doc/>`__
 * `📃 Sources <https://gitlab.com/elektroline-predator/shvcli>`__
 * `⁉️ Issue tracker <https://gitlab.com/elektroline-predator/shvcli/-/issues>`__
+* `📕 Silicon Heaven protocol documentation <https://silicon-heaven.github.io/shv-doc/>`__
 
-You can use ``pip`` to install ``shvcli`` from sources:
+
+Installation
+------------
+
+The installation can be done with package manager ``pip``.
 
 .. code-block:: console
 
-   $ git clone https://gitlab.com/elektroline-predator/shvcli.git
-   $ pip install ./shvcli
+   $ pip install shvcli
+
 
 Usage
 -----
