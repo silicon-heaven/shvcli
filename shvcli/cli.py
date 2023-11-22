@@ -33,35 +33,34 @@ async def _app(config: CliConfig, shvclient: SHVClient) -> None:
     )
     while True:
         try:
-            with patch_stdout():
-                result = await session.prompt_async(
-                    [
-                        (
-                            "ansibrightred"
-                            if shvclient.tree.get_path(config.path) is None
-                            else "ansibrightblue",
-                            config.shvpath(),
-                        ),
-                        ("", "> "),
-                    ]
-                )
-        except (EOFError, KeyboardInterrupt):
-            shvclient.client.disconnect()
-            return
-
-        items = parse_line(result)
-
-        if items.method:
+            prompt_path = (
+                "ansibrightred"
+                if shvclient.tree.get_path(config.path) is None
+                else "ansibrightblue",
+                config.shvpath(),
+            )
             try:
-                await call_method(shvclient, config, items)
-            except RpcError as exc:
-                print(f"{type(exc).__name__}: {exc.message}")
-        else:
-            newpath = config.sanitpath(config.path / items.path)
-            if await shvclient.path_is_valid(str(newpath)):
-                config.path = newpath
+                with patch_stdout():
+                    result = await session.prompt_async([prompt_path, ("", "> ")])
+            except EOFError:
+                shvclient.client.disconnect()
+                return
+
+            items = parse_line(result)
+
+            if items.method:
+                try:
+                    await call_method(shvclient, config, items)
+                except RpcError as exc:
+                    print(f"{type(exc).__name__}: {exc.message}")
             else:
-                print(f"Invalid path: {newpath}")
+                newpath = config.sanitpath(config.path / items.path)
+                if await shvclient.path_is_valid(str(newpath)):
+                    config.path = newpath
+                else:
+                    print(f"Invalid path: {newpath}")
+        except KeyboardInterrupt:
+            continue
 
 
 async def run(config: CliConfig) -> None:
