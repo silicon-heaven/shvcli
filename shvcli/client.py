@@ -166,4 +166,7 @@ class SHVClient(SimpleClient):
             pth, name = path.rsplit("/", maxsplit=1)
         else:
             pth, name = "", path
-        return name in await self.ls(pth)
+        try:
+            return name in await self.ls(pth)
+        except RpcError:
+            return False  # On error just consider it invalid
