@@ -99,7 +99,7 @@ supporter, yet.
 to the **subscribe** and same remarks apply here as well. It is a shortcut to
 the call of ``.app/broker/currentClient:unsubscribe``
 
-**subscriptions|sub**: List current subscriptions. This is shortcut to call
+**subscriptions|subs**: List current subscriptions. This is shortcut to call
 ``.app/broker/currentClient:subscriptions``.
 
 **cd**: Change current path prefix to given one even when there is no such node.
