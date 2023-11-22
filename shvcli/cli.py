@@ -8,6 +8,7 @@ from prompt_toolkit import PromptSession, print_formatted_text
 from prompt_toolkit.formatted_text import FormattedText
 from prompt_toolkit.history import FileHistory
 from prompt_toolkit.patch_stdout import patch_stdout
+from prompt_toolkit.shortcuts import ProgressBar, ProgressBarCounter
 from shv import RpcError, RpcMethodDesc, RpcMethodFlags, RpcSubscription
 from shv.cpon import Cpon
 
@@ -94,6 +95,11 @@ async def call_method(shvclient: SHVClient, config: CliConfig, items: CliItems) 
             print("    Print tree of nodes discovered in this session.")
             print("  cd [PATH]")
             print("    Change to given path even if it is invalid.")
+            print("  scan[X] [PATH]")
+            print(
+                "    Perform scan with maximum 'X' depth (3 if not specified). "
+                + "Scan uses 'ls' and 'dir' to fetch info about all nodes."
+            )
             print("  raw toggle|on|off")
             print("    Switch between interpreted or raw 'ls' and 'dir' methods.")
             print("  autoprobe toggle|on|off")
@@ -123,6 +129,14 @@ async def call_method(shvclient: SHVClient, config: CliConfig, items: CliItems) 
                 print_node_tree(node, [])
         elif items.method == "!cd":
             config.path = config.path / items.path / items.param_raw
+        elif items.method.startswith("!scan"):
+            strcnt = items.method[5:]
+            try:
+                cnt = int(strcnt) if strcnt else 3
+            except ValueError:
+                print(f"Invalid depth: {strcnt}")
+            else:
+                await scan_tree(shvclient, config.shvpath(items.path), cnt)
         elif items.method == "!raw":
             config.raw = config.toggle(items.param_raw, config.raw)
         elif items.method == "!autoprobe":
@@ -202,6 +216,24 @@ def dir_method_format(method: RpcMethodDesc) -> tuple[str, str]:
         methstyle,
         f'"{name}"' if any(c in name for c in string.whitespace) else name,
     )
+
+
+async def scan_tree(shvclient: SHVClient, path: str, depth: int) -> None:
+    """Perform scan of the nodes in the tree."""
+    depth += path.count("/")  # Extend depth to the depth in path
+    pths = [path]
+    with ProgressBar() as pb:
+        pbcnt: ProgressBarCounter = pb()
+        pbcnt.total = 1
+        while pths:
+            pth = pths.pop()
+            pbcnt.label = pth
+            node = await shvclient.probe(pth)
+            if node is not None and (pth.count("/") + 1 if pth else 0) < depth:
+                assert node.nodes is not None
+                pths.extend(f"{pth}{'/' if pth else ''}{name}" for name in node.nodes)
+                pbcnt.total += len(node.nodes)
+            pbcnt.item_completed()
 
 
 def print_node_tree(node: Node, cols: list[bool]) -> None:

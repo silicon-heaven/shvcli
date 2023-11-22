@@ -142,7 +142,7 @@ class SHVClient(SimpleClient):
         self.tree.valid_path(path).methods.add(method)
         return res
 
-    async def probe(self, path: str) -> None:
+    async def probe(self, path: str) -> Node | None:
         """Probe operation, that is discover methods and children of the node."""
         try:
             node = self.tree.get_path(path)
@@ -154,8 +154,9 @@ class SHVClient(SimpleClient):
                 await self.dir(path)
             if not node.nodes_probed:
                 await self.ls(path)
-        except RpcError:
+        except (RpcError, ValueError):
             pass
+        return node
 
     async def path_is_valid(self, path: str) -> bool:
         """Check if given path is valid by using ls command."""

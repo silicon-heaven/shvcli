@@ -110,6 +110,10 @@ far (and cached thus it can be also old). You can use it to visualize the tree
 of nodes you are working with as well as to get insight into the state of the
 cache.
 
+**scan[X]**: Perform recursive probing of the tree up to the depth given as `X`
+(the default is 3). On big servers this can be pretty resource demanding and
+thus use it sparely.
+
 **raw**: ``ls`` and ``dir`` methods are handled in a special way as described in
 the next chapter. This special handling can be possibly decremental if you are
 trying to debug something specific with these functions and this this provides a
