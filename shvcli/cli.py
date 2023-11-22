@@ -81,7 +81,7 @@ async def _app(config: CliConfig, shvclient: SHVClient) -> None:
                 print(f"{type(exc).__name__}: {exc.message}")
         else:
             newpath = config.sanitpath(config.path / items.path)
-            if await shvclient.path_is_valid(str(newpath)[1:]):
+            if await shvclient.path_is_valid(str(newpath)):
                 config.path = newpath
             else:
                 print(f"Invalid path: {newpath}")

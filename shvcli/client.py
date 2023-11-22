@@ -159,5 +159,11 @@ class SHVClient(SimpleClient):
 
     async def path_is_valid(self, path: str) -> bool:
         """Check if given path is valid by using ls command."""
-        pth, name = (path if "/" in path else f"/{path}").rsplit("/", maxsplit=1)
+        path = path.strip("/")
+        if path == "":
+            return True  # top level is always valid
+        if "/" in path:
+            pth, name = path.rsplit("/", maxsplit=1)
+        else:
+            pth, name = "", path
         return name in await self.ls(pth)
