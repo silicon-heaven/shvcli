@@ -36,6 +36,7 @@ class CliItems:
             return None
         return Cpon.unpack(self.param_raw)
 
+    @property
     def param_method(self) -> tuple[str, str | None]:
         """Interpret parameter as path and method."""
         if ":" in self.param_raw:

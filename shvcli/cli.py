@@ -131,12 +131,12 @@ async def call_method(shvclient: SHVClient, config: CliConfig, items: CliItems) 
                 + "(disable of autoprobe is suggested)."
             )
         elif items.method in ("!sub", "!subscribe"):
-            path, method = items.param_method()
+            path, method = items.param_method
             await shvclient.subscribe(
                 RpcSubscription(config.shvpath(path), method or "")
             )
         elif items.method in ("!usub", "!unsubscribe"):
-            path, method = items.param_method()
+            path, method = items.param_method
             await shvclient.unsubscribe(
                 RpcSubscription(config.shvpath(path), method or "")
             )
