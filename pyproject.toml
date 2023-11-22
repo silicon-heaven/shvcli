@@ -1,7 +1,7 @@
 [project]
 name = "shvcli"
 version = "0.1.0"
-description = "Project Template Python"
+description = "Silicon Heaven CLI access application"
 readme = "README.rst"
 license = {file = "LICENSE"}
 authors = [
@@ -11,9 +11,9 @@ classifiers = [
   "Programming Language :: Python :: 3",
   "Operating System :: OS Independent",
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = [
-  "pyshv",
+  "pyshv >= 0.4.0",
   "prompt_toolkit",
 ]
 

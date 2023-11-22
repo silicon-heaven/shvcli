@@ -18,11 +18,14 @@
         path = ./.;
         filter = path: type: ! hasSuffix ".nix" path;
       };
-      attrList = attr: list: attrValues (getAttrs list attr);
 
-      requires = p: attrList p pyproject.project.dependencies;
+      list2attr = list: attr: attrValues (getAttrs list attr);
+      pypi2nix = list:
+        list2attr (map (n: elemAt (match "([^ ]*).*" n) 0) list);
+
+      requires = pypi2nix pyproject.project.dependencies;
       requires-dev = p:
-        attrList p pyproject.project.optional-dependencies.lint
+        pypi2nix pyproject.project.optional-dependencies.lint p
         ++ [p.build p.twine];
 
       shvcli = {python3Packages}:
