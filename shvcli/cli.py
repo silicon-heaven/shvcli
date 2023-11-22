@@ -8,7 +8,6 @@ from prompt_toolkit import PromptSession, print_formatted_text
 from prompt_toolkit.formatted_text import FormattedText
 from prompt_toolkit.history import FileHistory
 from prompt_toolkit.patch_stdout import patch_stdout
-from prompt_toolkit.styles import Style
 from shv import RpcError, RpcMethodDesc, RpcMethodFlags, RpcSubscription
 from shv.cpon import Cpon
 
@@ -17,27 +16,6 @@ from .complet import CliCompleter
 from .config import CliConfig
 from .parse import CliItems, parse_line
 from .tools import intersperse, lookahead
-
-style = Style.from_dict(
-    {
-        "": "ansiwhite",
-        # ls
-        "ls-regular": "ansiwhite",
-        "ls-dot": "ansigray",
-        "ls-prop": "ansiyellow",
-        "ls-dir": "ansiblue",
-        # dir
-        "dir-regular": "ansiwhite",
-        "dir-ls": "ansibrightblack",
-        "dir-getter": "ansigreen",
-        "dir-setter": "ansiyellow",
-        "dir-signal": "ansipurple",
-        # Prompt.
-        "path": "ansibrightblue",
-        "path-invalid": "ansibrightred",
-        "prompt": "ansiwhite",
-    }
-)
 
 
 async def _app(config: CliConfig, shvclient: SHVClient) -> None:
@@ -51,7 +29,6 @@ async def _app(config: CliConfig, shvclient: SHVClient) -> None:
 
     session: PromptSession = PromptSession(
         history=FileHistory(str(histfile)),
-        style=style,
         completer=completer,
     )
     while True:
@@ -60,12 +37,12 @@ async def _app(config: CliConfig, shvclient: SHVClient) -> None:
                 result = await session.prompt_async(
                     [
                         (
-                            "class:path-invalid"
+                            "ansibrightred"
                             if shvclient.tree.get_path(config.path) is None
-                            else "class:path",
+                            else "ansibrightblue",
                             config.shvpath(),
                         ),
-                        ("class:prompt", "> "),
+                        ("", "> "),
                     ]
                 )
         except (EOFError, KeyboardInterrupt):
@@ -166,7 +143,6 @@ async def call_method(shvclient: SHVClient, config: CliConfig, items: CliItems) 
                     (ls_node_format(node, n) for n in await shvclient.ls(shvpath)),
                 )
             ),
-            style=style,
         )
     elif items.method == "dir" and not config.raw:
         print_formatted_text(
@@ -181,7 +157,6 @@ async def call_method(shvclient: SHVClient, config: CliConfig, items: CliItems) 
                     ),
                 )
             ),
-            style=style,
         )
     else:
         try:
@@ -200,32 +175,32 @@ async def call_method(shvclient: SHVClient, config: CliConfig, items: CliItems) 
 
 def ls_node_format(node: Node | None, name: str) -> tuple[str, str]:
     """Print format for single node info."""
-    nodestyle = "dot" if name.startswith(".") else "regular"
+    nodestyle = "ansigray" if name.startswith(".") else ""
     if node is not None and (subnode := node.get(name, None)) is not None:
         if "get" in subnode.methods:
-            nodestyle = "prop"
+            nodestyle = "ansiyellow"
         elif subnode.nodes:
-            nodestyle = "dir"
+            nodestyle = "ansiblue"
     return (
-        f"class:ls-{nodestyle}",
+        nodestyle,
         f'"{name}"' if any(c in name for c in string.whitespace) else name,
     )
 
 
 def dir_method_format(method: RpcMethodDesc) -> tuple[str, str]:
     """Print format for single method info."""
-    methstyle = "regular"
+    methstyle = ""
     if RpcMethodFlags.SIGNAL in method.flags:
-        methstyle = "signal"
+        methstyle = "ansipurple"
     elif RpcMethodFlags.SETTER in method.flags:
-        methstyle = "setter"
+        methstyle = "ansiyellow"
     elif RpcMethodFlags.GETTER in method.flags:
-        methstyle = "getter"
+        methstyle = "ansigreen"
     elif method.name in ("ls", "dir"):
-        methstyle = "ls"
+        methstyle = "ansibrightblack"
     name = method.name
     return (
-        f"class:dir-{methstyle}",
+        methstyle,
         f'"{name}"' if any(c in name for c in string.whitespace) else name,
     )
 
@@ -240,6 +215,5 @@ def print_node_tree(node: Node, cols: list[bool]) -> None:
                     iter([("", "├─" if hasnext else "└─"), ls_node_format(node, name)]),
                 )
             ),
-            style=style,
         )
         print_node_tree(node[name], [*cols, hasnext])

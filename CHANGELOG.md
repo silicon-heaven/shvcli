@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Fixed
 - Switch to `/` is not posible because this path was considered invalid
+- Fixed color scheme with white terminals
 
 
 ## [0.1.0] - 2023-11-10
