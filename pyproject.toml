@@ -1,6 +1,6 @@
 [project]
 name = "shvcli"
-version = "0.1.0"
+version = "0.1.1"
 description = "Silicon Heaven CLI access application"
 readme = "README.rst"
 license = {file = "LICENSE"}
@@ -8,8 +8,15 @@ authors = [
   { name="Elektroline a.s." },
 ]
 classifiers = [
+  "Development Status :: 4 - Beta",
+  "License :: OSI Approved :: MIT License",
   "Programming Language :: Python :: 3",
   "Operating System :: OS Independent",
+  "Environment :: Console",
+  "Intended Audience :: End Users/Desktop",
+  "Topic :: Home Automation",
+  "Topic :: System :: Shells",
+  "Topic :: Terminals",
 ]
 requires-python = ">=3.11"
 dependencies = [
