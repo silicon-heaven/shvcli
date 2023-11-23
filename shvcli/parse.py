@@ -5,6 +5,8 @@ import enum
 from shv import SHVType
 from shv.cpon import Cpon
 
+from .config import CliConfig
+
 
 class CliFlags(enum.Flag):
     """Flags informing about parsed items."""
@@ -45,6 +47,24 @@ class CliItems:
         if "/" in self.param_raw:
             return self.param_raw, None
         return "", self.param_raw
+
+    def interpret_param_path(self, config: CliConfig) -> str:
+        """Interpret parameter as path specification.
+
+        :return: full path.
+        """
+        return config.shvpath([self.path, self.param_raw])
+
+    def interpret_param_method(self, config: CliConfig) -> tuple[str, str | None]:
+        """Interpret parameter as method specification.
+
+        Compared to :meth:`param_method` this provides a full combination of
+        path and method not just parsed :prop:`param_raw`.
+
+        :return: pair of SHV path and method name that is from parameter.
+        """
+        param_path, method = self.param_method
+        return config.shvpath([self.path, param_path]), method
 
 
 def parse_line(line: str) -> CliItems:

@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Added builtin method `!scan` that allows discovery of SHV tree
 
+### Fixed
+- Bultin functions `!subscribe`, `!usubscribe` and `!tree` now correctly uses
+  full SHV path and not just path from argument
+
 
 ## [0.1.1] - 2023-11-22
 ### Changed

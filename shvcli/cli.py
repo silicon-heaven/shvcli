@@ -4,8 +4,7 @@ import itertools
 import pathlib
 import string
 
-from prompt_toolkit import PromptSession, print_formatted_text
-from prompt_toolkit.formatted_text import FormattedText
+from prompt_toolkit import PromptSession
 from prompt_toolkit.history import FileHistory
 from prompt_toolkit.patch_stdout import patch_stdout
 from prompt_toolkit.shortcuts import ProgressBar, ProgressBarCounter
@@ -16,7 +15,7 @@ from .client import Node, SHVClient
 from .complet import CliCompleter
 from .config import CliConfig
 from .parse import CliItems, parse_line
-from .tools import intersperse, lookahead
+from .tools import lookahead, print_flist, print_ftext
 
 
 async def _app(config: CliConfig, shvclient: SHVClient) -> None:
@@ -113,19 +112,16 @@ async def call_method(shvclient: SHVClient, config: CliConfig, items: CliItems) 
                 + "(disable of autoprobe is suggested)."
             )
         elif items.method in ("!sub", "!subscribe"):
-            path, method = items.param_method
-            await shvclient.subscribe(
-                RpcSubscription(config.shvpath(path), method or "")
-            )
+            path, method = items.interpret_param_method(config)
+            await shvclient.subscribe(RpcSubscription(path, method or ""))
         elif items.method in ("!usub", "!unsubscribe"):
-            path, method = items.param_method
-            await shvclient.unsubscribe(
-                RpcSubscription(config.shvpath(path), method or "")
-            )
+            path, method = items.interpret_param_method(config)
+            await shvclient.unsubscribe(RpcSubscription(path, method or ""))
         elif items.method in ("!subs", "!subscriptions"):
             print(await shvclient.call(".app/broker/currentClient", "subscriptions"))
         elif items.method in ("!t", "!tree"):
-            if (node := shvclient.tree.get_path(config.path)) is not None:
+            path = items.interpret_param_path(config)
+            if (node := shvclient.tree.get_path(path)) is not None:
                 print_node_tree(node, [])
         elif items.method == "!cd":
             config.path = config.path / items.path / items.param_raw
@@ -147,30 +143,12 @@ async def call_method(shvclient: SHVClient, config: CliConfig, items: CliItems) 
             print(f"Invalid internal method: {items.method}")
         return
     if items.method == "ls" and not config.raw:
-        shvpath = config.shvpath([items.path, items.param_raw])
+        shvpath = items.interpret_param_path(config)
         node = shvclient.tree.get_path(shvpath)
-        print_formatted_text(
-            FormattedText(
-                intersperse(
-                    ("", " "),
-                    (ls_node_format(node, n) for n in await shvclient.ls(shvpath)),
-                )
-            ),
-        )
+        print_flist(ls_node_format(node, n) for n in await shvclient.ls(shvpath))
     elif items.method == "dir" and not config.raw:
-        print_formatted_text(
-            FormattedText(
-                intersperse(
-                    ("", " "),
-                    (
-                        dir_method_format(d)
-                        for d in await shvclient.dir(
-                            config.shvpath([items.path, items.param_raw])
-                        )
-                    ),
-                )
-            ),
-        )
+        shvpath = items.interpret_param_path(config)
+        print_flist(dir_method_format(d) for d in await shvclient.dir(shvpath))
     else:
         try:
             param = items.param
@@ -239,12 +217,10 @@ async def scan_tree(shvclient: SHVClient, path: str, depth: int) -> None:
 def print_node_tree(node: Node, cols: list[bool]) -> None:
     """Print tree discovered in SHV client."""
     for name, hasnext in lookahead(node):
-        print_formatted_text(
-            FormattedText(
-                itertools.chain(
-                    (("", "│ " if c else "  ") for c in cols),
-                    iter([("", "├─" if hasnext else "└─"), ls_node_format(node, name)]),
-                )
-            ),
+        print_ftext(
+            itertools.chain(
+                (("", "│ " if c else "  ") for c in cols),
+                iter([("", "├─" if hasnext else "└─"), ls_node_format(node, name)]),
+            )
         )
         print_node_tree(node[name], [*cols, hasnext])

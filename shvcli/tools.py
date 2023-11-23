@@ -1,5 +1,9 @@
 """Various tools used in the code."""
+import collections.abc
 import typing
+
+from prompt_toolkit import print_formatted_text
+from prompt_toolkit.formatted_text import FormattedText
 
 T = typing.TypeVar("T")
 
@@ -25,3 +29,19 @@ def intersperse(what: T, iterin: typing.Iterable[T]) -> typing.Iterator[T]:
             yield what
         yield v
         first = False
+
+
+def print_ftext(
+    fstrs: collections.abc.Iterable[tuple[str, str]]
+    | collections.abc.Iterator[tuple[str, str]]
+) -> None:
+    """Call :meth:`print_formatted_text` with :class:`FormattedText`."""
+    print_formatted_text(FormattedText(fstrs))
+
+
+def print_flist(
+    fstrs: collections.abc.Iterable[tuple[str, str]]
+    | collections.abc.Iterator[tuple[str, str]]
+) -> None:
+    """Print with :meth:`print_ftext` but interperse spaces."""
+    print_ftext(intersperse(("", " "), (v for v in fstrs)))
