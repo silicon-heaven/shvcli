@@ -132,7 +132,7 @@ async def call_method(shvclient: SHVClient, config: CliConfig, items: CliItems) 
             except ValueError:
                 print(f"Invalid depth: {strcnt}")
             else:
-                await scan_tree(shvclient, config.shvpath(items.path), cnt)
+                await scan_tree(shvclient, items.interpret_param_path(config), cnt)
         elif items.method == "!raw":
             config.raw = config.toggle(items.param_raw, config.raw)
         elif items.method == "!autoprobe":
