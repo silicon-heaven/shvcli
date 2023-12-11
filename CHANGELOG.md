@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Validation of CPON when entering it on CLI
 - Ability to set some configuration options from configuration file
 - Added option to switch to Vi like input mode (`vimode` config option)
+- Keep cache between process invocations
 
 ### Changed
 - Builtin commands `raw`, `autoprobe` and `debug` were replaced with `set`

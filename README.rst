@@ -89,6 +89,9 @@ switched in runtime. The following options are available:
   be also overwhelming. The default is ``false``. It is beneficial to disable
   the **autobrobe** once you enable debug because otherwise output on CLI will
   be mangled on completion.
+  **cache**: Controls if cache is preserved between invocations. Cache is
+  separated based on the connection URL and stored in files in
+  ``$XDG_CACHE_HOME/shvcli``. The default is ``true``.
 
 
 Example configuration file:

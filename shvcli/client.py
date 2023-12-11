@@ -1,4 +1,6 @@
 """SHV client for shvcli."""
+from __future__ import annotations
+
 import collections.abc
 import typing
 from pathlib import PurePosixPath
@@ -74,6 +76,28 @@ class Node(collections.abc.Mapping):
                 return None
             node = node[n]
         return node
+
+    def dump(self) -> typing.Any:
+        """Dump the data to basic types."""
+        return {
+            "nodes": {n: v.dump() for n, v in self.nodes.items()},
+            "methods": list(self.methods),
+            "signals": list(self.signals),
+            "nodes_probed": self.nodes_probed,
+            "methods_probed": self.methods_probed,
+        }
+
+    @classmethod
+    def load(cls, data: typing.Any) -> Node:
+        """Load node tree from dump."""
+        assert isinstance(data, collections.abc.Mapping)
+        res = cls()
+        res.nodes = {n: cls.load(v) for n, v in data["nodes"].items()}
+        res.methods = set(data["methods"])
+        res.signals = set(data["signals"])
+        res.nodes_probed = data["nodes_probed"]
+        res.methods_probed = data["methods_probed"]
+        return res
 
 
 class SHVClient(SimpleClient):

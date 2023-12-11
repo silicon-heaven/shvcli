@@ -1,16 +1,19 @@
 """Command line interface."""
 import asyncio
+import json
 import pathlib
+import re
 
+import xdg.BaseDirectory
 from prompt_toolkit import PromptSession
 from prompt_toolkit.history import FileHistory
 from prompt_toolkit.patch_stdout import patch_stdout
-from shv import RpcError
+from shv import RpcError, RpcUrl
 from shv.cpon import Cpon
 
 from . import builtin_impl as _
 from .builtin import call_builtin
-from .client import SHVClient
+from .client import Node, SHVClient
 from .complet import CliCompleter
 from .config import CliConfig
 from .lsdir import dir_method, ls_method
@@ -59,6 +62,20 @@ async def run(config: CliConfig) -> None:
     shvclient = await SHVClient.connect(config.url)
     assert isinstance(shvclient, SHVClient)
 
+    if config.cache:
+        cacheurl = RpcUrl(
+            location=config.url.location,
+            port=config.url.port,
+            protocol=config.url.protocol,
+            username=config.url.username,
+        )
+        cpath = xdg.BaseDirectory.save_cache_path("shvcli")
+        fname = re.sub(r"[^\w_. -]", "_", cacheurl.to_url())
+        cachepath = pathlib.Path(cpath).expanduser() / fname
+        if cachepath.exists():
+            with cachepath.open("r") as f:
+                shvclient.tree = Node.load(json.load(f))
+
     clitask = asyncio.create_task(_app(config, shvclient))
     await shvclient.client.wait_disconnect()
     if not clitask.done():
@@ -68,6 +85,11 @@ async def run(config: CliConfig) -> None:
         await clitask
     except asyncio.CancelledError:
         pass
+
+    if config.cache:
+        cachepath.parent.mkdir(exist_ok=True)
+        with cachepath.open("w") as f:
+            json.dump(shvclient.tree.dump(), f)
 
 
 async def handle_line(shvclient: SHVClient, config: CliConfig, cmdline: str) -> None:

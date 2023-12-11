@@ -28,6 +28,8 @@ class CliConfig:
         """Perform automatic SHV Tree discovery on completion."""
         self.raw: bool = False
         """Interpret ls and dir method calls internally or not."""
+        self.cache: bool = True
+        """Preserve cache between executions. Not modifiable in runtime!"""
         self.opts_bool = {"vimode", "autoprobe", "raw", "debug"}
         """All bolean options. You can use :func:`setattr` and :func:`getattr`."""
 
