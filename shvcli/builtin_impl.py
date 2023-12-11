@@ -1,7 +1,6 @@
 """Implementations of our builtin methods."""
 import collections.abc
 import itertools
-import string
 
 from prompt_toolkit.completion import Completion
 from prompt_toolkit.shortcuts import ProgressBar, ProgressBarCounter
@@ -19,6 +18,7 @@ from .tools import lookahead, print_block, print_ftext, print_row
 def argument_signal_comp(
     shvclient: SHVClient, config: CliConfig, items: CliItems
 ) -> collections.abc.Iterable[Completion]:
+    """Completion for subscribe argument."""
     if ":" in items.param_raw:
         path, method = items.interpret_param_method(config)
         assert method is not None
@@ -32,6 +32,7 @@ def argument_signal_comp(
 def argument_set_comp(
     _: SHVClient, config: CliConfig, items: CliItems
 ) -> collections.abc.Iterable[Completion]:
+    """Completion for !set method."""
     opt, val = items.interpret_param_set()
     if val is not None:
         if opt in config.opts_bool:

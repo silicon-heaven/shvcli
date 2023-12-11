@@ -14,6 +14,7 @@ class CliConfig:
     """Configuration passed around in CLI implementation."""
 
     def __init__(self) -> None:
+        """Initialize the configuration to the default and load config files."""
         self.hosts: dict[str, RpcUrl] = {}
         """Hosts that can be used instead of URL."""
         self.hosts_shell: dict[str, str] = {}

@@ -50,7 +50,7 @@ def print_flist(
 
 
 def print_row(text: str, indent: int = 0) -> None:
-    """Prints at most one line with hyphens when needed."""
+    """Print at most one line with hyphens when needed."""
     cols = os.get_terminal_size().columns - indent
     print(
         textwrap.shorten(

@@ -17,6 +17,8 @@ _T_XMETHOD = typing.Callable[
 
 @dataclasses.dataclass
 class Argument:
+    """Definition of argument for builtin method."""
+
     description: str
     completion: typing.Callable[
         [SHVClient, CliConfig, CliItems], collections.abc.Iterable[Completion]
@@ -26,6 +28,8 @@ class Argument:
 
 @dataclasses.dataclass
 class Method:
+    """Builtin method definition."""
+
     func: _T_METHOD
     name: str
     aliases: collections.abc.Set[str]
@@ -35,6 +39,8 @@ class Method:
 
 @dataclasses.dataclass
 class XMethod:
+    """Definition of builtin method with numeric suffix."""
+
     func: _T_XMETHOD
     name: str
     argument: Argument | None
@@ -83,7 +89,7 @@ def xbuiltin(
 
 
 def get_builtin(name: str) -> Method | XMethod | None:
-    """Provides getter for builtin method description for given name."""
+    """Provide getter for builtin method description for given name."""
     res = METHODS.get(name)
     if res is None:
         try:
@@ -100,6 +106,7 @@ def get_builtin(name: str) -> Method | XMethod | None:
 async def call_builtin(
     shvclient: SHVClient, config: CliConfig, items: CliItems
 ) -> None:
+    """Perform call of builtin method."""
     method = items.method[1:]
     m = get_builtin(method)
     if m is None:

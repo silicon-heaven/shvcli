@@ -42,13 +42,13 @@ def dir_method_format(method: RpcMethodDesc) -> tuple[str, str]:
 
 
 async def ls_method(shvclient: SHVClient, config: CliConfig, items: CliItems) -> None:
-    """Implementation of ls method that is just smarter than regular call."""
+    """SHV ls method that is just smarter than regular call."""
     shvpath = items.interpret_param_path(config)
     node = shvclient.tree.get_path(shvpath)
     print_flist(ls_node_format(node, n) for n in await shvclient.ls(shvpath))
 
 
 async def dir_method(shvclient: SHVClient, config: CliConfig, items: CliItems) -> None:
-    """Implementation of dir method that is just smarter than regular call."""
+    """SHV dir method that is just smarter than regular call."""
     shvpath = items.interpret_param_path(config)
     print_flist(dir_method_format(d) for d in await shvclient.dir(shvpath))
