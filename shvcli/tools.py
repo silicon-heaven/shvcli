@@ -1,5 +1,7 @@
 """Various tools used in the code."""
 import collections.abc
+import os
+import textwrap
 import typing
 
 from prompt_toolkit import print_formatted_text
@@ -45,3 +47,27 @@ def print_flist(
 ) -> None:
     """Print with :meth:`print_ftext` but interperse spaces."""
     print_ftext(intersperse(("", " "), (v for v in fstrs)))
+
+
+def print_row(text: str, indent: int = 0) -> None:
+    """Prints at most one line with hyphens when needed."""
+    cols = os.get_terminal_size().columns - indent
+    print(
+        textwrap.shorten(
+            text, cols, initial_indent=" " * indent, subsequent_indent=" " * indent
+        )
+    )
+
+
+def print_block(text: str, indent: int = 0) -> None:
+    """Print text with given indent from left side.
+
+    This uses terminal size to wrap text to next line and indent it with given
+    number of spaces.
+    """
+    cols = os.get_terminal_size().columns - indent
+    print(
+        textwrap.fill(
+            text, cols, initial_indent=" " * indent, subsequent_indent=" " * indent
+        )
+    )
