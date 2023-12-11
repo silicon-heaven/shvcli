@@ -43,7 +43,9 @@ async def _app(config: CliConfig, shvclient: SHVClient) -> None:
             )
             try:
                 with patch_stdout():
-                    result = await session.prompt_async([prompt_path, ("", "> ")])
+                    result = await session.prompt_async(
+                        [prompt_path, ("", "> ")], vi_mode=config.vimode
+                    )
             except EOFError:
                 shvclient.client.disconnect()
                 return

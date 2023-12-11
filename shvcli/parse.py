@@ -66,6 +66,14 @@ class CliItems:
         param_path, method = self.param_method
         return config.shvpath([self.path, param_path]), method
 
+    def interpret_param_set(self) -> tuple[str | None, str | None]:
+        """Interpret parameter as 'set' method specification.
+
+        :return: First word and rest of the string.
+        """
+        s = self.param_raw.split(" ", maxsplit=1)
+        return s[0] if s else None, s[1] if len(s) > 1 else None
+
 
 def parse_line(line: str) -> CliItems:
     """Parse CLI line."""

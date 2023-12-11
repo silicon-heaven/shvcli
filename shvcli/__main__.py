@@ -31,7 +31,7 @@ def main() -> None:
     args = parse_args()
     config = CliConfig()
     config.url = args.URL
-    config.debug_output = args.debug
+    config.debug = config.debug or args.debug
     asyncio.run(run(config))
 
 

@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Added builtin method `!scan` that allows discovery of SHV tree
 - Validation of CPON when entering it on CLI
+- Ability to set some configuration options from configuration file
+- Added option to switch to Vi like input mode (`vimode` config option)
+
+### Changed
+- Builtin commands `raw`, `autoprobe` and `debug` were replaced with `set`
 
 ### Fixed
 - Bultin functions `!subscribe`, `!usubscribe` and `!tree` now correctly uses

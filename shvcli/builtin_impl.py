@@ -1,6 +1,7 @@
 """Implementations of our builtin methods."""
 import collections.abc
 import itertools
+import string
 
 from prompt_toolkit.completion import Completion
 from prompt_toolkit.shortcuts import ProgressBar, ProgressBarCounter
@@ -28,15 +29,21 @@ def argument_signal_comp(
         yield from comp_path(shvclient, config, items)
 
 
-def argument_toggle_comp(
-    _: SHVClient, __: CliConfig, items: CliItems
+def argument_set_comp(
+    _: SHVClient, config: CliConfig, items: CliItems
 ) -> collections.abc.Iterable[Completion]:
-    yield from comp_from(items.param_raw, {"toggle", "on", "off"})
+    opt, val = items.interpret_param_set()
+    if val is not None:
+        if opt in config.opts_bool:
+            yield from comp_from(val, {"true", "false"})
+    else:
+        yield from comp_from(items.param_raw, config.opts_bool)
+        yield from comp_from(items.param_raw, (f"no{v}" for v in config.opts_bool))
 
 
 argument_signal = Argument("[PATH:SIGNAL]", argument_signal_comp, autoprobe=True)
 argument_path = Argument("[PATH]", comp_path, autoprobe=True)
-argument_toggle = Argument("[toggle|on|off]", argument_toggle_comp)
+argument_set = Argument("[OPTION [VALUE]]", argument_set_comp)
 
 
 @builtin("help", {"h"}, hidden=True)
@@ -124,19 +131,26 @@ async def scan(
             pbcnt.item_completed()
 
 
-@builtin(argument=argument_toggle)
-async def raw(_: SHVClient, config: CliConfig, items: CliItems) -> None:
-    """Switch between interpreted or raw 'ls' and 'dir' methods."""
-    config.raw = config.toggle(items.param_raw, config.raw)
-
-
-@builtin(argument=argument_toggle)
-async def autoprobe(_: SHVClient, config: CliConfig, items: CliItems) -> None:
-    """Configure if automatic discovery of methods and nodes on completion should be performed."""
-    config.autoprobe = config.toggle(items.param_raw, config.autoprobe)
-
-
-@builtin(aliases={"d"}, argument=argument_toggle)
-async def debug(_: SHVClient, config: CliConfig, items: CliItems) -> None:
-    """Switch between enabled and disabled debug output (disable of autoprobe is suggested)."""
-    config.debug_output = config.toggle(items.param_raw, config.debug_output)
+@builtin("set", aliases={"s"}, argument=argument_set)
+async def _set(_: SHVClient, config: CliConfig, items: CliItems) -> None:
+    """Set configuration options in runtime."""
+    opt, val = items.interpret_param_set()
+    if not opt:
+        for n in config.opts_bool:
+            print(f"{n}: {str(getattr(config, n)).lower()}")
+        return
+    no = opt.startswith("no")
+    if no:
+        opt = opt[2:]
+    if opt not in config.opts_bool:
+        print(f"Invalid option: {opt}")
+        return
+    if val is None:
+        value = not getattr(config, opt)
+    else:
+        m = {"true": True, "t": True, "false": False, "f": False}
+        if val not in m:
+            print(f"Invalid value, expected 'true' or 'false': {val}")
+            return
+        value = m[val]
+    setattr(config, opt, value)

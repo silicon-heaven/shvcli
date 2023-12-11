@@ -68,6 +68,28 @@ They are in INI file format and the following sections are supported:
 **hosts-shell**: That is same as **hosts** with exception that URL is passed
 through your local Shell to expand any variables or command substitutions.
 
+**config**: That allows you to set some initial configuration that can be also
+switched in runtime. The following options are available:
+  **vimode**: If Vi input mode should be used for command line input. The
+  default is ``false``.
+  **autoprobe**: Completion process benefits from probing of the SHV nodes with
+  ``ls`` and ``dir``, and to provide easier usage this can happen automatically
+  in background. This is what this option controls. It is ``true`` by default
+  but it might not be desirable in some cases, because this can generate a lot
+  of hidden traffic.
+  **raw**: Controls if ``ls`` and ``dir`` methods are handled in a special way
+  as described later in this document. This special handling can be possibly
+  decremental if you are trying to debug something specific with these functions
+  and this provides a way to call them with any CPON to see what they provide.
+  Note that caching and discovery of the nodes will stop working once you are in
+  the raw mode and thus you will no longer get the advantage of that. The
+  default is ``false``.
+  **debug**: Controls if internal debug messages are displayed. These messages
+  can give you idea of what shvcli is actually doing behind the wail but it can
+  be also overwhelming. The default is ``false``. It is beneficial to disable
+  the **autobrobe** once you enable debug because otherwise output on CLI will
+  be mangled on completion.
+
 
 Example configuration file:
 
@@ -78,6 +100,9 @@ Example configuration file:
 
    [hosts-shell]
    company = tcp://smith@company.example.org?password=$(pass company/shv)
+
+   [config]
+   vimode = true
 
 
 Internal methods
@@ -114,22 +139,12 @@ cache.
 (the default is 3). On big servers this can be pretty resource demanding and
 thus use it sparely.
 
-**raw**: ``ls`` and ``dir`` methods are handled in a special way as described in
-the next chapter. This special handling can be possibly decremental if you are
-trying to debug something specific with these functions and this this provides a
-way to disable this. Note that caching and discovery of the nodes will stop
-working once you are in the raw mode and thus you will no longer get the
-advantage of that.
-
-**autoprobe**: The default behavior is to use ``ls`` and ``dir`` methods to
-discover nodes and methods on autocompletion. That is very convenient but it
-also generates traffic that is not directly visible to you. If you prefer not to
-do that for any reason then you can use this to disable this behavior.
-
-**debug|d**: This controls logging facilities of SHVCLI itself. With this you
-can get info about all messages sent and received as well as other debug info.
-It is beneficial to disable the **autoprobe** once you disable debug because
-otherwise the output on the CLI will be mangled on completion.
+**set|s**: allows modification of configuration option in runtime.  The names
+are the same as in ``config`` section. The boolean options (the only ones
+available right now) are set if no argument is provided, or cleared if name is
+prefixed with ``no`` (and thus to disable ``raw`` you use ``noraw``). You can
+also provide argument ``true`` or ``false``. Without any configuration option it
+simply prints the current configuration.
 
 
 Special methods ``ls`` and ``dir``

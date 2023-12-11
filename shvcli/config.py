@@ -1,7 +1,6 @@
 """Configuration state of the CLI."""
 import collections.abc
 import configparser
-import dataclasses
 import functools
 import logging
 import pathlib
@@ -11,17 +10,46 @@ import typing
 from shv import RpcUrl
 
 
-@dataclasses.dataclass
 class CliConfig:
     """Configuration passed around in CLI implementation."""
 
-    hosts: dict[str, RpcUrl] = dataclasses.field(default_factory=dict)
-    """Hosts that can be used instead of URL."""
+    def __init__(self) -> None:
+        self.hosts: dict[str, RpcUrl] = {}
+        """Hosts that can be used instead of URL."""
+        self.hosts_shell: dict[str, str] = {}
+        """Hosts that can be used instead of URL but URL is generated using shell."""
+        self.__url: RpcUrl = RpcUrl("localhost")
+        self.path: pathlib.PurePosixPath = pathlib.PurePosixPath("/")
+        """Current path we are working relative to."""
 
-    hosts_shell: dict[str, str] = dataclasses.field(default_factory=dict)
-    """Hosts that can be used instead of URL but URL is generated using shell."""
+        self.vimode: bool = False
+        """CLI input in Vi mode."""
+        self.autoprobe: bool = True
+        """Perform automatic SHV Tree discovery on completion."""
+        self.raw: bool = False
+        """Interpret ls and dir method calls internally or not."""
+        self.opts_bool = {"vimode", "autoprobe", "raw", "debug"}
+        """All bolean options. You can use :func:`setattr` and :func:`getattr`."""
 
-    __url: RpcUrl = dataclasses.field(default_factory=lambda: RpcUrl("localhost"))
+        config = configparser.ConfigParser()
+        config.read(["/etc/shvcli.ini", pathlib.Path.home() / ".shvcli.ini"])
+        for secname, sec in config.items():
+            if secname == "DEFAULT":
+                for name, _ in sec.items():
+                    raise ValueError(f"Invalid configuration: {secname}.{name}")
+            elif secname == "hosts":
+                self.hosts.update({k: RpcUrl.parse(v) for k, v in sec.items()})
+            elif secname == "hosts-shell":
+                self.hosts_shell.update(sec.items())
+            elif secname == "config":
+                for n in self.opts_bool:
+                    setattr(
+                        self, n, sec.getboolean("vimode", fallback=getattr(self, n))
+                    )
+                if opts := set(sec.keys()) - self.opts_bool:
+                    raise ValueError(f"Invalid configuration option: {', '.join(opts)}")
+            else:
+                raise ValueError(f"Unknown configuration section: {sec}")
 
     @property
     def url(self) -> RpcUrl:
@@ -45,40 +73,14 @@ class CliConfig:
                 value = RpcUrl.parse(value)
         self.__url = value
 
-    path: pathlib.PurePosixPath = pathlib.PurePosixPath("/")
-    """Current path we are working relative to."""
-
-    raw: bool = False
-    """Interpret ls and dir method calls internally or not."""
-
-    autoprobe: bool = True
-    """Perform automatic SHV Tree discovery on completion."""
-
-    __debug_output = False
-
     @property
-    def debug_output(self) -> bool:
+    def debug(self) -> bool:
         """Log that provide debug output."""
-        return logging.root.level == logging.DEBUG
+        return logging.root.level <= logging.DEBUG
 
-    @debug_output.setter
-    def debug_output(self, value: bool) -> None:
+    @debug.setter
+    def debug(self, value: bool) -> None:
         logging.root.setLevel(logging.DEBUG if value else logging.WARNING)
-
-    def __post_init__(self) -> None:
-        """Load configuration."""
-        config = configparser.ConfigParser()
-        config.read(["/etc/shvcli.ini", pathlib.Path.home() / ".shvcli.ini"])
-        for secname, sec in config.items():
-            if secname == "DEFAULT":
-                for name, _ in sec.items():
-                    raise ValueError(f"Invalid configuration: {secname}.{name}")
-            elif secname == "hosts":
-                self.hosts.update({k: RpcUrl.parse(v) for k, v in sec.items()})
-            elif secname == "hosts-shell":
-                self.hosts_shell.update(sec.items())
-            else:
-                raise ValueError(f"Unknown configuration section: {sec}")
 
     def shvpath(
         self,
@@ -93,18 +95,6 @@ class CliConfig:
             )
             assert isinstance(suffix, pathlib.PurePosixPath)
         return str(self.sanitpath(self.path / suffix))[1:]
-
-    @staticmethod
-    def toggle(op: str, state: bool) -> bool:
-        """Map CLI operations on value change for boolean values."""
-        if op in ("", "toggle"):
-            return not state
-        if op == "on":
-            return True
-        if op == "off":
-            return False
-        print(f"Invalid argument: {op}")
-        return state
 
     @staticmethod
     def sanitpath(path: pathlib.PurePosixPath) -> pathlib.PurePosixPath:
