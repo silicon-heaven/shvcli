@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - Added builtin method `!scan` that allows discovery of SHV tree
+- Validation of CPON when entering it on CLI
 
 ### Fixed
 - Bultin functions `!subscribe`, `!usubscribe` and `!tree` now correctly uses

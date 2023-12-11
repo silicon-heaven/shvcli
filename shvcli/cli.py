@@ -15,6 +15,7 @@ from .complet import CliCompleter
 from .config import CliConfig
 from .lsdir import dir_method, ls_method
 from .parse import parse_line
+from .valid import CliValidator
 
 
 async def _app(config: CliConfig, shvclient: SHVClient) -> None:
@@ -25,10 +26,12 @@ async def _app(config: CliConfig, shvclient: SHVClient) -> None:
             pass
 
     completer = CliCompleter(shvclient, config)
+    validator = CliValidator(shvclient, config)
 
     session: PromptSession = PromptSession(
         history=FileHistory(str(histfile)),
         completer=completer,
+        validator=validator,
     )
     while True:
         try:
