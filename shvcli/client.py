@@ -1,8 +1,8 @@
 """SHV client for shvcli."""
 from __future__ import annotations
-import importlib.metadata
 
 import collections.abc
+import importlib.metadata
 import typing
 from pathlib import PurePosixPath
 
@@ -126,7 +126,7 @@ class SHVClient(SimpleClient):
             method = msg.method
             assert method is not None
             self.tree.valid_path(msg.path or "").signals.add(method)
-            print(f"{msg.path}:{method}: {Cpon.pack(msg.param).decode()}")
+            print(f"{msg.path}:{method}: {Cpon.pack(msg.param)}")
 
     async def ls(self, path: str) -> list[str]:
         """List same as in ValueClient but with result being preserved in tree."""

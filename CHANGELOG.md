@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Builtin commands `raw`, `autoprobe` and `debug` were replaced with `set`
+- Long CPON is now printed on multiple lines instead of one long
 
 ### Fixed
 - Bultin functions `!subscribe`, `!usubscribe` and `!tree` now correctly uses

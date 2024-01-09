@@ -4,6 +4,7 @@ import os
 import textwrap
 import typing
 
+import shv
 from prompt_toolkit import print_formatted_text
 from prompt_toolkit.formatted_text import FormattedText
 
@@ -71,3 +72,12 @@ def print_block(text: str, indent: int = 0) -> None:
             text, cols, initial_indent=" " * indent, subsequent_indent=" " * indent
         )
     )
+
+
+def print_cpon(data: shv.SHVType) -> None:
+    """Print given data in CPON format."""
+    simple = shv.Cpon.pack(data)
+    if len(simple) > os.get_terminal_size().columns:
+        print(shv.Cpon.pack(data, shv.CponWriter.Options(indent=b"  ")))
+    else:
+        print(simple)

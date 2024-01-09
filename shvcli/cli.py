@@ -18,6 +18,7 @@ from .complet import CliCompleter
 from .config import CliConfig
 from .lsdir import dir_method, ls_method
 from .parse import parse_line
+from .tools import print_cpon
 from .valid import CliValidator
 
 
@@ -109,12 +110,10 @@ async def handle_line(shvclient: SHVClient, config: CliConfig, cmdline: str) -> 
                 except (ValueError, EOFError):
                     print(f"Invalid CPON format of parameter: {items.param_raw}")
                 else:
-                    print(
-                        Cpon.pack(
-                            await shvclient.call(
-                                config.shvpath(items.path), items.method, param
-                            )
-                        ).decode()
+                    print_cpon(
+                        await shvclient.call(
+                            config.shvpath(items.path), items.method, param
+                        )
                     )
         except RpcError as exc:
             print(f"{type(exc).__name__}: {exc.message}")
