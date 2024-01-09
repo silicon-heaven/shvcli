@@ -1,5 +1,6 @@
 """SHV client for shvcli."""
 from __future__ import annotations
+import importlib.metadata
 
 import collections.abc
 import typing
@@ -102,6 +103,12 @@ class Node(collections.abc.Mapping):
 
 class SHVClient(SimpleClient):
     """Our client caching SHV Tree and reporting received signals."""
+
+    APP_NAME = "shvcli"
+    try:
+        APP_VERSION = importlib.metadata.version("shvcli")
+    except importlib.metadata.PackageNotFoundError:
+        APP_VERSION = "unknown"
 
     def __init__(self, client: RpcClient) -> None:
         """Initialize client and set create reference to tree."""
