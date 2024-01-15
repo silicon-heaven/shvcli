@@ -20,7 +20,7 @@ classifiers = [
 ]
 requires-python = ">=3.11"
 dependencies = [
-  "pyshv >= 0.4.0",
+  "pyshv >= 0.5.0",
   "prompt_toolkit",
   "pyxdg",
 ]

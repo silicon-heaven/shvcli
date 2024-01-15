@@ -1,8 +1,6 @@
 {
   description = "Silicon Heaven CLI";
-  inputs = {
-    pyshv.url = "github:silicon-heaven/pyshv";
-  };
+  inputs.pyshv.url = "gitlab:elektroline-predator/pyshv";
 
   outputs = {
     self,
