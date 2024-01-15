@@ -34,6 +34,7 @@
           inherit (pyproject.project) version;
           format = "pyproject";
           inherit src;
+          nativeBuildInputs = [python3Packages.setuptools];
           propagatedBuildInputs = requires python3Packages;
         };
     in
