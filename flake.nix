@@ -29,7 +29,7 @@
       shvcli = {python3Packages}:
         python3Packages.buildPythonApplication {
           pname = pyproject.project.name;
-          inherit (pyproject.project) version;
+          version = fileContents ./shvcli/version;
           format = "pyproject";
           inherit src;
           nativeBuildInputs = [python3Packages.setuptools];
@@ -50,10 +50,7 @@
       // eachDefaultSystem (system: let
         pkgs = nixpkgs.legacyPackages.${system}.extend self.overlays.default;
       in {
-        packages = {
-          inherit (pkgs) shvcli;
-          default = pkgs.shvcli;
-        };
+        packages.default = pkgs.shvcli;
         legacyPackages = pkgs;
 
         devShells = let
@@ -75,6 +72,12 @@
             python310 = mkShell pkgs.python310;
             python311 = mkShell pkgs.python311;
           };
+
+        apps.default = {
+          type = "app";
+          program = "${self.packages.${system}.default}/bin/shvcli";
+        };
+
 
         checks.default = self.packages.${system}.default;
 

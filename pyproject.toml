@@ -1,9 +1,9 @@
 [project]
 name = "shvcli"
-version = "0.1.1"
 description = "Silicon Heaven CLI access application"
 readme = "README.rst"
 license = {file = "LICENSE"}
+dynamic = ["version"]
 authors = [
   { name="Elektroline a.s." },
 ]
@@ -44,8 +44,10 @@ shvcli = "shvcli.__main__:main"
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
+[tool.setuptools.dynamic]
+version = {file = "foo/version"}
 [tool.setuptools.package-data]
-"*" = ["py.typed"]
+"*" = ["version", "py.typed"]
 
 [tool.coverage.run]
 branch = true

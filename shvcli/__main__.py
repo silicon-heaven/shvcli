@@ -3,6 +3,7 @@ import argparse
 import asyncio
 import logging
 
+from . import VERSION
 from .cli import run
 from .config import CliConfig
 
@@ -10,6 +11,7 @@ from .config import CliConfig
 def parse_args() -> argparse.Namespace:
     """Parse passed arguments and return result."""
     parser = argparse.ArgumentParser(description="Silicon Heaven CLI")
+    parser.add_argument("--version", action="version", version="%(prog)s " + VERSION)
     parser.add_argument(
         "-d",
         "--debug",

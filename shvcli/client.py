@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import collections.abc
-import importlib.metadata
 import typing
 from pathlib import PurePosixPath
 
@@ -17,6 +16,8 @@ from shv import (
     SimpleClient,
 )
 from shv.cpon import Cpon
+
+from . import VERSION
 
 
 class Node(collections.abc.Mapping):
@@ -105,10 +106,7 @@ class SHVClient(SimpleClient):
     """Our client caching SHV Tree and reporting received signals."""
 
     APP_NAME = "shvcli"
-    try:
-        APP_VERSION = importlib.metadata.version("shvcli")
-    except importlib.metadata.PackageNotFoundError:
-        APP_VERSION = "unknown"
+    APP_VERSION = VERSION
 
     def __init__(self, client: RpcClient) -> None:
         """Initialize client and set create reference to tree."""
