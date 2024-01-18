@@ -45,7 +45,7 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.dynamic]
-version = {file = "foo/version"}
+version = {file = "shvcli/version"}
 [tool.setuptools.package-data]
 "*" = ["version", "py.typed"]
 

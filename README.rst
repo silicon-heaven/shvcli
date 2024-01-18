@@ -70,26 +70,27 @@ through your local Shell to expand any variables or command substitutions.
 
 **config**: That allows you to set some initial configuration that can be also
 switched in runtime. The following options are available:
-  **vimode**: If Vi input mode should be used for command line input. The
+
+* **vimode**: If Vi input mode should be used for command line input. The
   default is ``false``.
-  **autoprobe**: Completion process benefits from probing of the SHV nodes with
+* **autoprobe**: Completion process benefits from probing of the SHV nodes with
   ``ls`` and ``dir``, and to provide easier usage this can happen automatically
   in background. This is what this option controls. It is ``true`` by default
   but it might not be desirable in some cases, because this can generate a lot
   of hidden traffic.
-  **raw**: Controls if ``ls`` and ``dir`` methods are handled in a special way
+* **raw**: Controls if ``ls`` and ``dir`` methods are handled in a special way
   as described later in this document. This special handling can be possibly
   decremental if you are trying to debug something specific with these functions
   and this provides a way to call them with any CPON to see what they provide.
   Note that caching and discovery of the nodes will stop working once you are in
   the raw mode and thus you will no longer get the advantage of that. The
   default is ``false``.
-  **debug**: Controls if internal debug messages are displayed. These messages
+* **debug**: Controls if internal debug messages are displayed. These messages
   can give you idea of what shvcli is actually doing behind the wail but it can
   be also overwhelming. The default is ``false``. It is beneficial to disable
   the **autobrobe** once you enable debug because otherwise output on CLI will
   be mangled on completion.
-  **cache**: Controls if cache is preserved between invocations. Cache is
+* **cache**: Controls if cache is preserved between invocations. Cache is
   separated based on the connection URL and stored in files in
   ``$XDG_CACHE_HOME/shvcli``. The default is ``true``.
 
