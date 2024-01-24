@@ -35,11 +35,14 @@ def argument_set_comp(
     """Completion for !set method."""
     opt, val = items.interpret_param_set()
     if val is not None:
-        if opt in config.opts_bool:
+        if config.OPTS.get(opt or "") is config.Type.BOOL:
             yield from comp_from(val, {"true", "false"})
     else:
-        yield from comp_from(items.param_raw, config.opts_bool)
-        yield from comp_from(items.param_raw, (f"no{v}" for v in config.opts_bool))
+        yield from comp_from(items.param_raw, config.OPTS.keys())
+        yield from comp_from(
+            items.param_raw,
+            (f"no{v}" for v, t in config.OPTS.items() if t is config.Type.BOOL),
+        )
 
 
 argument_signal = Argument("[PATH:SIGNAL]", argument_signal_comp, autoprobe=True)
@@ -122,17 +125,23 @@ async def _set(_: SHVClient, config: CliConfig, items: CliItems) -> None:
     """Set configuration options in runtime."""
     opt, val = items.interpret_param_set()
     if not opt:
-        for n in config.opts_bool:
-            print(f"{n}: {str(getattr(config, n)).lower()}")
+        for n, t in config.OPTS.items():
+            match t:
+                case config.Type.BOOL:
+                    print(f"{n}: {str(getattr(config, n)).lower()}")
+                case config.Type.INT:
+                    print(f"{n}: {str(getattr(config, n))}")
+                case _:
+                    raise NotImplementedError(f"Unimplemented {t!r}")
         return
-    no = opt.startswith("no")
-    if no:
+    # TODO from here we need add support for integers when we need it.
+    if no := opt.startswith("no"):
         opt = opt[2:]
-    if opt not in config.opts_bool:
+    if opt not in config.OPTS.keys():
         print(f"Invalid option: {opt}")
         return
     if val is None:
-        value = not getattr(config, opt)
+        value = not no
     else:
         m = {"true": True, "t": True, "false": False, "f": False}
         if val not in m:

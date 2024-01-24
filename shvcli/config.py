@@ -1,6 +1,7 @@
 """Configuration state of the CLI."""
 import collections.abc
 import configparser
+import enum
 import functools
 import logging
 import pathlib
@@ -12,6 +13,22 @@ from shv import RpcUrl
 
 class CliConfig:
     """Configuration passed around in CLI implementation."""
+
+    class Type(enum.Enum):
+        """Type of the config that can be modified in runtime."""
+
+        BOOL = enum.auto()
+        INT = enum.auto()
+
+    OPTS: collections.abc.Mapping[str, Type] = {
+        "vimode": Type.BOOL,
+        "autoprobe": Type.BOOL,
+        "raw": Type.BOOL,
+        "debug": Type.BOOL,
+    }
+    """All options allowed to be set in runtime.
+    You can use :func:`setattr` and :func:`getattr`.
+    """
 
     def __init__(self) -> None:
         """Initialize the configuration to the default and load config files."""
@@ -31,28 +48,39 @@ class CliConfig:
         """Interpret ls and dir method calls internally or not."""
         self.cache: bool = True
         """Preserve cache between executions. Not modifiable in runtime!"""
-        self.opts_bool = {"vimode", "autoprobe", "raw", "debug"}
-        """All bolean options. You can use :func:`setattr` and :func:`getattr`."""
+        self.initial_scan: bool = False
+        """Perform scan right after connection."""
+        self.initial_scan_depth: int = 3
+        """Depth of the initial scan."""
 
         config = configparser.ConfigParser()
         config.read(["/etc/shvcli.ini", pathlib.Path.home() / ".shvcli.ini"])
         for secname, sec in config.items():
-            if secname == "DEFAULT":
-                for name, _ in sec.items():
-                    raise ValueError(f"Invalid configuration: {secname}.{name}")
-            elif secname == "hosts":
-                self.hosts.update({k: RpcUrl.parse(v) for k, v in sec.items()})
-            elif secname == "hosts-shell":
-                self.hosts_shell.update(sec.items())
-            elif secname == "config":
-                for n in self.opts_bool:
-                    setattr(
-                        self, n, sec.getboolean("vimode", fallback=getattr(self, n))
-                    )
-                if opts := set(sec.keys()) - self.opts_bool:
-                    raise ValueError(f"Invalid configuration option: {', '.join(opts)}")
-            else:
-                raise ValueError(f"Unknown configuration section: {sec}")
+            match secname:
+                case "DEFAULT":
+                    for name, _ in sec.items():
+                        raise ValueError(f"Invalid configuration: {secname}.{name}")
+                case "hosts":
+                    self.hosts.update({k: RpcUrl.parse(v) for k, v in sec.items()})
+                case "hosts-shell":
+                    self.hosts_shell.update(sec.items())
+                case "config":
+                    for n, t in self.OPTS.items():
+                        value = getattr(self, n)
+                        match t:
+                            case self.Type.BOOL:
+                                value = sec.getboolean(n, fallback=value)
+                            case self.Type.INT:
+                                value = sec.getinteger(n, fallback=value)
+                            case _:
+                                raise NotImplementedError(f"Unhandled type: {t!r}")
+                        setattr(self, n, value)
+                    if opts := set(sec.keys()) - set(self.OPTS.keys()):
+                        raise ValueError(
+                            f"Invalid configuration option: {', '.join(opts)}"
+                        )
+                case _:
+                    raise ValueError(f"Unknown configuration section: {sec}")
 
     @property
     def url(self) -> RpcUrl:

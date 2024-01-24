@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Ability to scan tree right after connection
 
+### Fixed
+- `!set` now sets boolean options instead of toggling it
+
 
 ## [0.2.1] - 2024-01-18
 ### Fixed
