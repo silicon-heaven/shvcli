@@ -3,7 +3,6 @@ import collections.abc
 import itertools
 
 from prompt_toolkit.completion import Completion
-from prompt_toolkit.shortcuts import ProgressBar, ProgressBarCounter
 from shv import RpcSubscription
 
 from .builtin import METHODS, Argument, XMethod, builtin, xbuiltin
@@ -12,6 +11,7 @@ from .complet_tools import comp_from, comp_path
 from .config import CliConfig
 from .lsdir import ls_node_format
 from .parse import CliItems
+from .scan import scan_nodes
 from .tools import lookahead, print_block, print_ftext, print_row
 
 
@@ -114,22 +114,7 @@ async def scan(
 
     Scan uses 'ls' and 'dir' to fetch info about all nodes.
     """
-    depth = depth or 3
-    path = items.interpret_param_path(config)
-    depth += path.count("/")  # Extend depth to the depth in path
-    pths = [path]
-    with ProgressBar() as pb:
-        pbcnt: ProgressBarCounter = pb()
-        pbcnt.total = 1
-        while pths:
-            pth = pths.pop()
-            pbcnt.label = pth
-            node = await shvclient.probe(pth)
-            if node is not None and (pth.count("/") + 1 if pth else 0) < depth:
-                assert node.nodes is not None
-                pths.extend(f"{pth}{'/' if pth else ''}{name}" for name in node.nodes)
-                pbcnt.total += len(node.nodes)
-            pbcnt.item_completed()
+    await scan_nodes(shvclient, items.interpret_param_path(config), depth or 3)
 
 
 @builtin("set", aliases={"s"}, argument=argument_set)

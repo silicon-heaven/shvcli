@@ -19,6 +19,18 @@ def parse_args() -> argparse.Namespace:
         help="Enable logging that provides communication debug info.",
     )
     parser.add_argument(
+        "-s",
+        "--scan",
+        action="store_true",
+        help="Perform scan as a first action right after connect.",
+    )
+    parser.add_argument(
+        "--scan-depth",
+        type=int,
+        default=3,
+        help="Depth of the scan performed if --scan is used.",
+    )
+    parser.add_argument(
         "URL",
         nargs="?",
         default="tcp://test@localhost?password=test",
@@ -34,6 +46,8 @@ def main() -> None:
     config = CliConfig()
     config.url = args.URL
     config.debug = config.debug or args.debug
+    config.initial_scan = args.scan
+    config.initial_scan_depth = args.scan_depth
     asyncio.run(run(config))
 
 

@@ -9,7 +9,6 @@ from prompt_toolkit import PromptSession
 from prompt_toolkit.history import FileHistory
 from prompt_toolkit.patch_stdout import patch_stdout
 from shv import RpcError, RpcUrl
-from shv.cpon import Cpon
 
 from . import builtin_impl as _
 from .builtin import call_builtin
@@ -18,6 +17,7 @@ from .complet import CliCompleter
 from .config import CliConfig
 from .lsdir import dir_method, ls_method
 from .parse import parse_line
+from .scan import scan_nodes
 from .tools import print_cpon
 from .valid import CliValidator
 
@@ -76,6 +76,8 @@ async def run(config: CliConfig) -> None:
         if cachepath.exists():
             with cachepath.open("r") as f:
                 shvclient.tree = Node.load(json.load(f))
+    if config.initial_scan:
+        await scan_nodes(shvclient, "", config.initial_scan_depth)
 
     clitask = asyncio.create_task(_app(config, shvclient))
     await shvclient.client.wait_disconnect()
