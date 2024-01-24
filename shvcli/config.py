@@ -36,9 +36,10 @@ class CliConfig:
         """Hosts that can be used instead of URL."""
         self.hosts_shell: dict[str, str] = {}
         """Hosts that can be used instead of URL but URL is generated using shell."""
-        self.__url: RpcUrl = RpcUrl("localhost")
         self.path: pathlib.PurePosixPath = pathlib.PurePosixPath("/")
         """Current path we are working relative to."""
+        self.__rurl: RpcUrl | None = None
+        self.__url: RpcUrl | str | None = None
 
         self.vimode: bool = False
         """CLI input in Vi mode."""
@@ -62,8 +63,12 @@ class CliConfig:
                         raise ValueError(f"Invalid configuration: {secname}.{name}")
                 case "hosts":
                     self.hosts.update({k: RpcUrl.parse(v) for k, v in sec.items()})
+                    if self.hosts and self.__url is None:
+                        self.__url = self.hosts[next(iter(self.hosts))]
                 case "hosts-shell":
                     self.hosts_shell.update(sec.items())
+                    if self.hosts_shell and self.__url is None:
+                        self.__url = self.hosts_shell[next(iter(self.hosts_shell))]
                 case "config":
                     for n, t in self.OPTS.items():
                         value = getattr(self, n)
@@ -85,7 +90,23 @@ class CliConfig:
     @property
     def url(self) -> RpcUrl:
         """SHV RPC URL where client should connect to."""
-        return self.__url
+        if self.__rurl is None:
+            if self.__url is None:
+                self.__rurl = RpcUrl("localhost")
+            elif isinstance(self.__url, RpcUrl):
+                self.__rurl = self.__url
+            elif isinstance(self.__url, str):
+                self.__rurl = RpcUrl.parse(
+                    subprocess.run(
+                        f"printf '%s' \"{self.__url}\"",
+                        shell=True,
+                        stdout=subprocess.PIPE,
+                        check=True,
+                    ).stdout.decode()
+                )
+            else:
+                raise NotImplementedError
+        return self.__rurl
 
     @url.setter
     def url(self, value: RpcUrl | str) -> None:
@@ -93,13 +114,7 @@ class CliConfig:
             if value in self.hosts:
                 value = self.hosts[value]
             elif value in self.hosts_shell:
-                strurl = subprocess.run(
-                    f"printf '%s' \"{self.hosts_shell[value]}\"",
-                    shell=True,
-                    stdout=subprocess.PIPE,
-                    check=True,
-                ).stdout.decode()
-                value = RpcUrl.parse(strurl)
+                value = self.hosts_shell[value]
             else:
                 value = RpcUrl.parse(value)
         self.__url = value

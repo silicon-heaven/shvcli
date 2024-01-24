@@ -33,8 +33,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "URL",
         nargs="?",
-        default="tcp://test@localhost?password=test",
-        help="SHV RPC URL specifying connection to the broker.",
+        help="SHV RPC URL specifying connection to the broker or host from configuration.",
     )
     return parser.parse_args()
 
@@ -44,7 +43,8 @@ def main() -> None:
     logging.basicConfig(format="[%(asctime)s] [%(levelname)s] - %(message)s")
     args = parse_args()
     config = CliConfig()
-    config.url = args.URL
+    if args.URL is not None:
+        config.url = args.URL
     config.debug = config.debug or args.debug
     config.initial_scan = args.scan
     config.initial_scan_depth = args.scan_depth

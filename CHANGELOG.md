@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Ability to scan tree right after connection
 
+### Changed
+- Take default URL from configuration (the first host) instead of always
+  connecting to the localhost
+
 ### Fixed
 - `!set` now sets boolean options instead of toggling it
 
