@@ -22,6 +22,7 @@ class CliConfig:
 
     OPTS: collections.abc.Mapping[str, Type] = {
         "vimode": Type.BOOL,
+        "autoget": Type.BOOL,
         "autoprobe": Type.BOOL,
         "raw": Type.BOOL,
         "debug": Type.BOOL,
@@ -43,6 +44,8 @@ class CliConfig:
 
         self.vimode: bool = False
         """CLI input in Vi mode."""
+        self.autoget: bool = True
+        """Automatically call getters and show these values."""
         self.autoprobe: bool = True
         """Perform automatic SHV Tree discovery on completion."""
         self.raw: bool = False

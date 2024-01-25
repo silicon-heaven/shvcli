@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - Ability to scan tree right after connection
+- Automatic calling of getters when listing nodes and methods
 
 ### Changed
 - Take default URL from configuration (the first host) instead of always

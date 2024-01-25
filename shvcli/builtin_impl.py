@@ -95,7 +95,12 @@ async def tree(shvclient: SHVClient, config: CliConfig, items: CliItems) -> None
             print_ftext(
                 itertools.chain(
                     (("", "│ " if c else "  ") for c in cols),
-                    iter([("", "├─" if hasnext else "└─"), ls_node_format(node, name)]),
+                    iter(
+                        [
+                            ("", "├─" if hasnext else "└─"),
+                            ls_node_format(name, parent_node=node),
+                        ]
+                    ),
                 )
             )
             print_node(node[name], [*cols, hasnext])

@@ -20,7 +20,7 @@ from shv.cpon import Cpon
 from . import VERSION
 
 
-class Node(collections.abc.Mapping):
+class Node(collections.abc.Mapping[str, "Node"]):
     """Abstraction on the tree node."""
 
     def __init__(self) -> None:

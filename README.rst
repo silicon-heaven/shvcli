@@ -73,6 +73,8 @@ switched in runtime. The following options are available:
 
 * **vimode**: If Vi input mode should be used for command line input. The
   default is ``false``.
+* **autoget**: Automatically call getter methods and print received values when
+  listing nodes and methods (``ls`` and ``dir`` methods special handling).
 * **autoprobe**: Completion process benefits from probing of the SHV nodes with
   ``ls`` and ``dir``, and to provide easier usage this can happen automatically
   in background. This is what this option controls. It is ``true`` by default
