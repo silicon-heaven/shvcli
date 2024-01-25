@@ -11,9 +11,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Take default URL from configuration (the first host) instead of always
   connecting to the localhost
+- Method results in CPON are now printed with JSON syntax highlight (There is no
+  syntax lexer for CPON at the moment)
 
 ### Fixed
 - `!set` now sets boolean options instead of toggling it
+- `!help` now handles multiline descriptions in a better way
+- `dir` and `ls` listings are now better wrapped to multiple lines
 
 
 ## [0.2.1] - 2024-01-18

@@ -6,7 +6,10 @@ import typing
 
 import shv
 from prompt_toolkit import print_formatted_text
+from prompt_toolkit.document import Document
 from prompt_toolkit.formatted_text import FormattedText
+from prompt_toolkit.lexers import PygmentsLexer
+from pygments.lexers.data import JsonLexer
 
 T = typing.TypeVar("T")
 
@@ -47,17 +50,46 @@ def print_flist(
     | collections.abc.Iterator[tuple[str, str]]
 ) -> None:
     """Print with :meth:`print_ftext` but interperse spaces."""
-    print_ftext(intersperse(("", " "), (v for v in fstrs)))
+    cols = os.get_terminal_size().columns
+
+    def generate() -> collections.abc.Iterator[tuple[str, str]]:
+        w = 0
+        for f, v in fstrs:
+            yield f, v
+            w += len(v)
+            if w > cols:
+                w = len(v)
+                yield "", "\n"
+            else:
+                yield "", " "
+
+    print_ftext(generate())
 
 
-def print_row(text: str, indent: int = 0) -> None:
-    """Print at most one line with hyphens when needed."""
-    cols = os.get_terminal_size().columns - indent
-    print(
-        textwrap.shorten(
-            text, cols, initial_indent=" " * indent, subsequent_indent=" " * indent
-        )
-    )
+def print_row(
+    ftext: collections.abc.Iterable[tuple[str, str]]
+    | collections.abc.Iterator[tuple[str, str]]
+    | tuple[str, str]
+    | str
+) -> None:
+    """Print one line with hyphens when needed."""
+    if isinstance(ftext, str):
+        ftext = ("", ftext)
+    if isinstance(ftext, tuple):
+        ftext = [typing.cast(tuple[str, str], ftext)]
+    hyphen = "..."
+    cols = os.get_terminal_size().columns - len(hyphen)
+
+    def generate() -> collections.abc.Iterator[tuple[str, str]]:
+        w = 0
+        for f, v in ftext:
+            yield f, v[: cols - w]
+            w += len(v)
+            if w >= cols:
+                yield "", hyphen
+                break
+
+    print_ftext(generate())
 
 
 def print_block(text: str, indent: int = 0) -> None:
@@ -74,10 +106,27 @@ def print_block(text: str, indent: int = 0) -> None:
     )
 
 
-def print_cpon(data: shv.SHVType) -> None:
+def cpon_ftext(cpon: str) -> collections.abc.Iterator[tuple[str, str]]:
+    """Add style to the the CPON."""
+    lexer = PygmentsLexer(JsonLexer)  # TODO implement CPON lexer
+    ltext = lexer.lex_document(Document(cpon))
+    for i, notlast in lookahead(range(cpon.count("\n") + 1)):
+        for f in ltext(i):
+            yield f[0], f[1]
+        if notlast:
+            yield "", "\n"
+
+
+def print_cpon(data: shv.SHVType, short: bool = False) -> None:
     """Print given data in CPON format."""
     simple = shv.Cpon.pack(data)
     if len(simple) > os.get_terminal_size().columns:
-        print(shv.Cpon.pack(data, shv.CponWriter.Options(indent=b"  ")))
+        if short:
+            print_row(cpon_ftext(simple))
+        else:
+            for line in shv.Cpon.pack(
+                data, shv.CponWriter.Options(indent=b" ")
+            ).splitlines():
+                print_row(cpon_ftext(line))
     else:
-        print(simple)
+        print_ftext(cpon_ftext(simple))

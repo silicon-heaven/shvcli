@@ -1,5 +1,6 @@
 """Implementations of our builtin methods."""
 import collections.abc
+import inspect
 import itertools
 
 from prompt_toolkit.completion import Completion
@@ -61,8 +62,8 @@ async def _help(_: SHVClient, __: CliConfig, ___: CliItems) -> None:
             call = f"{name}[X]"
         else:
             call = name + "".join(f"|{n}" for n in m.aliases)
-        print_row(call + (f" {m.argument.description}" if m.argument else ""), 2)
-        print_block(m.description, 4)
+        print_row(f"{call} {m.argument.description if m.argument else ''}")
+        print_block(inspect.cleandoc(m.description), 4)
 
 
 @builtin(aliases={"sub"}, argument=argument_signal)
