@@ -131,15 +131,21 @@ async def _set(_: SHVClient, config: CliConfig, items: CliItems) -> None:
     """Set configuration options in runtime."""
     opt, val = items.interpret_param_set()
     if not opt:
+        w = max(len(n) for n in config.OPTS.keys())
         for n, t in config.OPTS.items():
+            row = [("", (" " * (w - len(n))) + n + "  ")]
             match t:
                 case config.Type.BOOL:
-                    print(f"{n}: {str(getattr(config, n)).lower()}")
+                    v = getattr(config, n)
+                    assert isinstance(v, bool)
+                    row.append(("ansigreen" if v else "ansired", str(v).lower()))
                 case config.Type.INT:
-                    print(f"{n}: {str(getattr(config, n))}")
+                    row.append(("", str(getattr(config, n))))
                 case _:
                     raise NotImplementedError(f"Unimplemented {t!r}")
+            print_row(row)
         return
+
     # TODO from here we need add support for integers when we need it.
     if no := opt.startswith("no"):
         opt = opt[2:]
