@@ -22,6 +22,7 @@ requires-python = ">=3.11"
 dependencies = [
   "pyshv >= 0.5.0",
   "prompt_toolkit",
+  "pygments",
   "pyxdg",
 ]
 
