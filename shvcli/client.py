@@ -7,7 +7,6 @@ import typing
 from pathlib import PurePosixPath
 
 from shv import (
-    RpcClient,
     RpcError,
     RpcMessage,
     RpcMethodDesc,
@@ -112,11 +111,11 @@ class SHVClient(SimpleClient):
     APP_NAME = "shvcli"
     APP_VERSION = VERSION
 
-    def __init__(self, client: RpcClient) -> None:
+    def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:  # noqa ANN401
         """Initialize client and set create reference to tree."""
         self.tree = Node()
         self.tree.valid_path(".app")
-        super().__init__(client)
+        super().__init__(*args, **kwargs)
 
     async def _loop(self) -> None:
         await super()._loop()
@@ -154,19 +153,27 @@ class SHVClient(SimpleClient):
             self.tree.invalid_path(path)
             raise exc
         node = self.tree.valid_path(path)
-        node.methods = {d.name for d in res if RpcMethodFlags.SIGNAL not in d.flags}
-        node.signals = {d.name for d in res if RpcMethodFlags.SIGNAL in d.flags}
+        node.methods = {
+            d.name for d in res if RpcMethodFlags.NOT_CALLABLE not in d.flags
+        }
+        node.signals = {d.name for d in res if RpcMethodFlags.NOT_CALLABLE in d.flags}
         node.methods_probed = True
         return res
 
-    async def call(self, path: str, method: str, param: SHVType = None) -> SHVType:
+    async def call(
+        self,
+        path: str,
+        method: str,
+        *args: typing.Any,  # noqa ANN401
+        **kwargs: typing.Any,  # noqa ANN401
+    ) -> SHVType:
         """Perform call same as ValueClient.
 
         This uses every call to get insite into existence of method and node and records
         that in the tree.
         """
         try:
-            res = await super().call(path, method, param)
+            res = await super().call(path, method, *args, **kwargs)
         except RpcMethodNotFoundError as exc:
             raise exc
         except RpcError as exc:

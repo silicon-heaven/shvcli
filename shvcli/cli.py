@@ -9,7 +9,7 @@ import xdg.BaseDirectory
 from prompt_toolkit import PromptSession
 from prompt_toolkit.history import FileHistory
 from prompt_toolkit.patch_stdout import patch_stdout
-from shv import RpcError, RpcUrl
+from shv import RpcError, RpcLogin, RpcUrl
 
 from . import builtin_impl as _  # noqa F401
 from .builtin import call_builtin
@@ -69,7 +69,7 @@ async def run(config: CliConfig) -> None:
             location=config.url.location,
             port=config.url.port,
             protocol=config.url.protocol,
-            username=config.url.username,
+            login=RpcLogin(username=config.url.login.username),
         )
         cpath = xdg.BaseDirectory.save_cache_path("shvcli")
         fname = re.sub(r"[^\w_. -]", "_", cacheurl.to_url())

@@ -33,14 +33,17 @@ def ls_node_format(
 def dir_method_format(method: RpcMethodDesc) -> tuple[str, str]:
     """Print format for single method info."""
     methstyle = ""
-    if RpcMethodFlags.SIGNAL in method.flags:
-        methstyle = "ansipurple"
+    if method.name in {"ls", "dir"}:
+        methstyle = "ansibrightblack"
     elif RpcMethodFlags.SETTER in method.flags:
         methstyle = "ansiyellow"
     elif RpcMethodFlags.GETTER in method.flags:
-        methstyle = "ansigreen"
-    elif method.name in {"ls", "dir"}:
-        methstyle = "ansibrightblack"
+        if method.signals:
+            methstyle = "ansimagenta"
+        else:
+            methstyle = "ansigreen"
+    elif method.signals or RpcMethodFlags.NOT_CALLABLE in method.flags:
+        methstyle = "ansipurple"
     name = method.name
     return (
         methstyle,
