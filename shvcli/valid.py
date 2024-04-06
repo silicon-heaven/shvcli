@@ -1,4 +1,5 @@
 """Validator for CLI."""
+
 from prompt_toolkit.document import Document
 from prompt_toolkit.validation import ValidationError, Validator
 
@@ -22,7 +23,7 @@ class CliValidator(Validator):
 
         # Parameters
         if CliFlags.COMPLETE_CALL in items.flags:
-            if items.method in ("ls", "dir") and not self.config.raw:
+            if items.method in {"ls", "dir"} and not self.config.raw:
                 return
             if builtin.get_builtin(items.method[1:]):
                 # TODO we can add validation to the builtins as well
@@ -30,7 +31,7 @@ class CliValidator(Validator):
             # Any other command should have CPON as argument and thus validate
             # it as such.
             try:
-                items.param
+                _ = items.param
             except (ValueError, EOFError) as exc:
                 raise ValidationError(message=f"Invalid CPON: {exc}") from exc
 

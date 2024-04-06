@@ -20,16 +20,12 @@
       list2attr = list: attr: attrValues (getAttrs list attr);
       pypi2nix = list:
         list2attr (map (n: elemAt (match "([^ ]*).*" n) 0) list);
-
       requires = pypi2nix pyproject.project.dependencies;
-      requires-dev = p:
-        pypi2nix pyproject.project.optional-dependencies.lint p
-        ++ [p.build p.twine];
 
       shvcli = {python3Packages}:
         python3Packages.buildPythonApplication {
           pname = pyproject.project.name;
-          version = fileContents ./shvcli/version;
+          inherit (pyproject.project) version;
           format = "pyproject";
           inherit src;
           nativeBuildInputs = [python3Packages.setuptools];
@@ -53,31 +49,28 @@
         packages.default = pkgs.shvcli;
         legacyPackages = pkgs;
 
-        devShells = let
-          mkShell = pythonX:
-            pkgs.mkShell {
-              packages = with pkgs; [
-                (pythonX.withPackages (p:
-                  foldl (prev: f: prev ++ f p) [] [
-                    requires
-                    requires-dev
-                  ]))
-                editorconfig-checker
-                gitlint
-              ];
-            };
-        in
-          filterPackages system {
-            default = mkShell pkgs.python3;
-            python310 = mkShell pkgs.python310;
-            python311 = mkShell pkgs.python311;
+        devShells = filterPackages system {
+          default = pkgs.mkShell {
+            packages = with pkgs; [
+              editorconfig-checker
+              gitlint
+              ruff
+              (python3.withPackages (p:
+                [
+                  p.build
+                  p.twine
+                  p.sphinx-autobuild
+                  p.mypy
+                ]
+                ++ (requires p)))
+            ];
           };
+        };
 
         apps.default = {
           type = "app";
           program = "${self.packages.${system}.default}/bin/shvcli";
         };
-
 
         checks.default = self.packages.${system}.default;
 

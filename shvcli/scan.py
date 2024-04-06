@@ -3,6 +3,7 @@
 Implementated sepratelly so we can use it not only from builtin methods but also
 directly when configured.
 """
+
 from prompt_toolkit.shortcuts import ProgressBar, ProgressBarCounter
 
 from .client import SHVClient

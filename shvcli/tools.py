@@ -1,4 +1,5 @@
 """Various tools used in the code."""
+
 import collections.abc
 import os
 import textwrap
@@ -39,7 +40,7 @@ def intersperse(what: T, iterin: typing.Iterable[T]) -> typing.Iterator[T]:
 
 def print_ftext(
     fstrs: collections.abc.Iterable[tuple[str, str]]
-    | collections.abc.Iterator[tuple[str, str]]
+    | collections.abc.Iterator[tuple[str, str]],
 ) -> None:
     """Call :meth:`print_formatted_text` with :class:`FormattedText`."""
     print_formatted_text(FormattedText(fstrs))
@@ -47,7 +48,7 @@ def print_ftext(
 
 def print_flist(
     fstrs: collections.abc.Iterable[tuple[str, str]]
-    | collections.abc.Iterator[tuple[str, str]]
+    | collections.abc.Iterator[tuple[str, str]],
 ) -> None:
     """Print with :meth:`print_ftext` but interperse spaces."""
     cols = os.get_terminal_size().columns
@@ -70,7 +71,7 @@ def print_row(
     ftext: collections.abc.Iterable[tuple[str, str]]
     | collections.abc.Iterator[tuple[str, str]]
     | tuple[str, str]
-    | str
+    | str,
 ) -> None:
     """Print one line with hyphens when needed."""
     if isinstance(ftext, str):

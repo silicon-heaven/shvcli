@@ -1,4 +1,5 @@
 """Implementation of CLI parser."""
+
 import dataclasses
 import enum
 
@@ -28,7 +29,7 @@ class CliItems:
     param_raw: str = ""
     """Raw parameter passed from CLI."""
 
-    flags: CliFlags = CliFlags(0)
+    flags: CliFlags = dataclasses.field(default_factory=lambda: CliFlags(0))
     """Flags signaling the presence of some important dividers."""
 
     @property
@@ -84,9 +85,8 @@ def parse_line(line: str) -> CliItems:
     if ":" in line:
         res.flags |= CliFlags.HAS_COLON
         res.path, res.method = line.split(":", maxsplit=1)
+    elif "/" in line:
+        res.path = line
     else:
-        if "/" in line:
-            res.path = line
-        else:
-            res.method = line
+        res.method = line
     return res

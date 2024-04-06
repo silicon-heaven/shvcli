@@ -1,4 +1,5 @@
 """Builtin methods glue code so they can be defined separatelly."""
+
 import collections.abc
 import dataclasses
 import typing

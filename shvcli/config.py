@@ -1,4 +1,5 @@
 """Configuration state of the CLI."""
+
 import collections.abc
 import configparser
 import enum
@@ -102,7 +103,7 @@ class CliConfig:
                 self.__rurl = RpcUrl.parse(
                     subprocess.run(
                         f"printf '%s' \"{self.__url}\"",
-                        shell=True,
+                        shell=True,  # noqa S602
                         stdout=subprocess.PIPE,
                         check=True,
                     ).stdout.decode()
@@ -128,7 +129,7 @@ class CliConfig:
         return logging.root.level <= logging.DEBUG
 
     @debug.setter
-    def debug(self, value: bool) -> None:
+    def debug(self, value: bool) -> None:  # noqa PLR6301
         logging.root.setLevel(logging.DEBUG if value else logging.WARNING)
 
     def shvpath(

@@ -1,9 +1,9 @@
 [project]
 name = "shvcli"
+version = "0.3.0"
 description = "Silicon Heaven CLI access application"
 readme = "README.rst"
 license = {file = "LICENSE"}
-dynamic = ["version"]
 authors = [
   { name="Elektroline a.s." },
 ]
@@ -29,15 +29,6 @@ dependencies = [
 [project.urls]
 repository = "https://gitlab.com/elektroline-predator/shvcli"
 
-[project.optional-dependencies]
-lint = [
-  "black",
-  "isort",
-  "mypy",
-  "pydocstyle",
-  "pylint",
-]
-
 [project.scripts]
 shvcli = "shvcli.__main__:main"
 
@@ -45,10 +36,9 @@ shvcli = "shvcli.__main__:main"
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools.dynamic]
-version = {file = "shvcli/version"}
+[tool.setuptools.packages.find]
 [tool.setuptools.package-data]
-"*" = ["version", "py.typed"]
+"*" = ["py.typed"]
 
 [tool.coverage.run]
 branch = true
@@ -58,24 +48,40 @@ exclude_lines = [
     "if typing.TYPE_CHECKING:"
 ]
 
-[tool.isort]
-profile = 'black'
-
-[tool.pylint.main]
-recursive = "y"
-fail-under = 9.5
-[tool.pylint.format]
-disable = [
-  # Exception can be safely caught because there is BaseException for unsafe
-  # ones (such as SystemExit) and there are reasons to catch all exceptions.
-  "W0718",
-  # Prevent usage of module name in documentation (seems unreasonable)
-  "C0104",
-  # We have pydocstyle for the following ones
-  "C0103", "C0114", "C0115", "C0116",
+[tool.ruff]
+target-version = "py311"
+[tool.ruff.lint]
+select = [
+  "F", "E", "W", "I", "N", "D", "UP", "YTT", "ANN", "ASYNC", "TRIO", "S", "BLE",
+  "B", "A", "COM", "PL", "RUF"
 ]
-# https://black.readthedocs.io/en/stable/guides/using_black_with_other_tools.html
-max-line-length = 88
+ignore = [
+  # Magic methods have defined behavior so what is there to document. __init__
+  # should be documented in class docstring.
+  "D105", "D107",
+  # These have conflicting rules.
+  "D203", "D213",
+  # Ignore too long lines (format tackles that)
+  "E501",
+  # It is nice that assert should not be used for input checking but it can be
+  # also used for internal consistency checking.
+  "S101", "B011",
+  # subprocess can be insecurely used but not is insecure by design
+  "S404", "S603",
+  # Conflict with formatter
+  "COM812",
+  # Remove too-many limit for more complex code.
+  "PLR0911", "PLR0912", "PLR0913", "PLR2004", "PLR0916",
+  # Deprecated
+  "ANN101", "ANN102",
+]
+preview = true
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["D100", "D104", "S101", "ANN001", "ANN002", "ANN201"]
+"docs/conf.py" = ["D100", "D103", "A001", "ANN201", "ANN001"]
+[tool.ruff.format]
+docstring-code-format = true
+preview = true
 
 [tool.mypy]
 python_version = "3.11"
@@ -85,6 +91,3 @@ warn_redundant_casts = true
 warn_unused_ignores = true
 warn_return_any = true
 warn_unreachable = true
-
-[tool.pydocstyle]
-convention = "pep257"

@@ -1,4 +1,5 @@
 """Command line interface."""
+
 import asyncio
 import json
 import pathlib
@@ -10,7 +11,7 @@ from prompt_toolkit.history import FileHistory
 from prompt_toolkit.patch_stdout import patch_stdout
 from shv import RpcError, RpcUrl
 
-from . import builtin_impl as _
+from . import builtin_impl as _  # noqa F401
 from .builtin import call_builtin
 from .client import Node, SHVClient
 from .complet import CliCompleter

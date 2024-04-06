@@ -1,4 +1,5 @@
 """SHV client for shvcli."""
+
 from __future__ import annotations
 
 import collections.abc
@@ -31,7 +32,7 @@ class Node(collections.abc.Mapping[str, "Node"]):
         self.nodes_probed = False
         self.methods_probed = False
 
-    def __getitem__(self, key: str) -> "Node":
+    def __getitem__(self, key: str) -> Node:
         """Get node from nodes."""
         return self.nodes[key]
 
@@ -43,7 +44,7 @@ class Node(collections.abc.Mapping[str, "Node"]):
         """Get number of child nodes."""
         return len(self.nodes)
 
-    def valid_path(self, path: str | PurePosixPath) -> "Node":
+    def valid_path(self, path: str | PurePosixPath) -> Node:
         """Add valid path relative to this node."""
         if isinstance(path, str):
             path = PurePosixPath(path)
@@ -68,7 +69,7 @@ class Node(collections.abc.Mapping[str, "Node"]):
         if pnode is not None:
             pnode.nodes.pop(path.name)
 
-    def get_path(self, path: str | PurePosixPath) -> typing.Union[None, "Node"]:
+    def get_path(self, path: str | PurePosixPath) -> None | Node:
         """Get node on given path."""
         if isinstance(path, str):
             path = PurePosixPath(path)
@@ -79,7 +80,7 @@ class Node(collections.abc.Mapping[str, "Node"]):
             node = node[n]
         return node
 
-    def dump(self) -> typing.Any:
+    def dump(self) -> dict[str, object]:
         """Dump the data to basic types."""
         return {
             "nodes": {n: v.dump() for n, v in self.nodes.items()},
@@ -90,15 +91,18 @@ class Node(collections.abc.Mapping[str, "Node"]):
         }
 
     @classmethod
-    def load(cls, data: typing.Any) -> Node:
+    def load(cls, data: collections.abc.Mapping[str, object]) -> Node:
         """Load node tree from dump."""
         assert isinstance(data, collections.abc.Mapping)
         res = cls()
-        res.nodes = {n: cls.load(v) for n, v in data["nodes"].items()}
-        res.methods = set(data["methods"])
-        res.signals = set(data["signals"])
-        res.nodes_probed = data["nodes_probed"]
-        res.methods_probed = data["methods_probed"]
+        if isinstance(data["nodes"], collections.abc.Mapping):
+            res.nodes = {n: cls.load(v) for n, v in data["nodes"].items()}
+        if isinstance(data["methods"], collections.abc.Sequence):
+            res.methods = set(data["methods"])
+        if isinstance(data["signals"], collections.abc.Sequence):
+            res.signals = set(data["signals"])
+        res.nodes_probed = bool(data["nodes_probed"])
+        res.methods_probed = bool(data["methods_probed"])
         return res
 
 
@@ -190,7 +194,7 @@ class SHVClient(SimpleClient):
     async def path_is_valid(self, path: str) -> bool:
         """Check if given path is valid by using ls command."""
         path = path.strip("/")
-        if path == "":
+        if not path:
             return True  # top level is always valid
         if "/" in path:
             pth, name = path.rsplit("/", maxsplit=1)

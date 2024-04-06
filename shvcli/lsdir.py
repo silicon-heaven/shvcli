@@ -1,4 +1,5 @@
 """Special handling of ls and dir methods."""
+
 import itertools
 import pathlib
 import string
@@ -38,7 +39,7 @@ def dir_method_format(method: RpcMethodDesc) -> tuple[str, str]:
         methstyle = "ansiyellow"
     elif RpcMethodFlags.GETTER in method.flags:
         methstyle = "ansigreen"
-    elif method.name in ("ls", "dir"):
+    elif method.name in {"ls", "dir"}:
         methstyle = "ansibrightblack"
     name = method.name
     return (
@@ -74,7 +75,7 @@ async def ls_method(shvclient: SHVClient, config: CliConfig, items: CliItems) ->
                     else:
                         print_row(
                             itertools.chain(
-                                iter(n + [("", "  ")]), cpon_ftext(Cpon.pack(resp))
+                                iter([*n, ("", "  ")]), cpon_ftext(Cpon.pack(resp))
                             )
                         )
                         continue
@@ -99,7 +100,7 @@ async def dir_method(shvclient: SHVClient, config: CliConfig, items: CliItems) -
                 else:
                     print_row(
                         itertools.chain(
-                            iter(n + [("", "  ")]), cpon_ftext(Cpon.pack(resp))
+                            iter([*n, ("", "  ")]), cpon_ftext(Cpon.pack(resp))
                         )
                     )
                     continue

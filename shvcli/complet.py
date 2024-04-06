@@ -1,4 +1,5 @@
 """Completion for CLI."""
+
 import collections.abc
 import typing
 
@@ -28,7 +29,7 @@ class CliCompleter(Completer):
 
         # Parameters
         if CliFlags.COMPLETE_CALL in items.flags:
-            if items.method in ("ls", "dir") and not self.config.raw:
+            if items.method in {"ls", "dir"} and not self.config.raw:
                 yield from comp_path(self.shvclient, self.config, items)
             elif bmethod := builtin.get_builtin(items.method[1:]):
                 if bmethod.argument:
@@ -58,7 +59,7 @@ class CliCompleter(Completer):
         items = parse_line(document.text)
         if self.config.autoprobe and (
             CliFlags.COMPLETE_CALL not in items.flags
-            or items.method in ("ls", "dir")
+            or items.method in {"ls", "dir"}
             or (
                 items.method[0] == "!"
                 and (bmethod := builtin.get_builtin(items.method[1:])) is not None

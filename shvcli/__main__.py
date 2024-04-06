@@ -1,4 +1,5 @@
 """Implementation of command line application."""
+
 import argparse
 import asyncio
 import logging

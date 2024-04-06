@@ -1,4 +1,5 @@
 """Tool for completion algorithms."""
+
 import collections.abc
 import pathlib
 
