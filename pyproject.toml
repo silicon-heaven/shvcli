@@ -20,14 +20,14 @@ classifiers = [
 ]
 requires-python = ">=3.11"
 dependencies = [
-  "pyshv >= 0.5.0",
+  "pyshv >= 0.6.0",
   "prompt_toolkit",
   "pygments",
   "pyxdg",
 ]
 
 [project.urls]
-repository = "https://gitlab.com/elektroline-predator/shvcli"
+repository = "https://gitlab.com/silicon-heaven/shvcli"
 
 [project.scripts]
 shvcli = "shvcli.__main__:main"
