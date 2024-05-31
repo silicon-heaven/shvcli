@@ -5,7 +5,7 @@ import inspect
 import itertools
 
 from prompt_toolkit.completion import Completion
-from shv import RpcSubscription
+from shv import RpcRI
 
 from .builtin import METHODS, Argument, XMethod, builtin, xbuiltin
 from .client import Node, SHVClient
@@ -71,14 +71,14 @@ async def _help(_: SHVClient, __: CliConfig, ___: CliItems) -> None:
 async def subscribe(shvclient: SHVClient, config: CliConfig, items: CliItems) -> None:
     """Add new subscribe."""
     path, method = items.interpret_param_method(config)
-    await shvclient.subscribe(RpcSubscription(path, method or ""))
+    await shvclient.subscribe(RpcRI(path, "*", method or ""))
 
 
 @builtin(aliases={"usub"}, argument=argument_signal)
 async def unsubscribe(shvclient: SHVClient, config: CliConfig, items: CliItems) -> None:
     """Unsubscribe existing subscription."""
     path, method = items.interpret_param_method(config)
-    await shvclient.unsubscribe(RpcSubscription(path, method or ""))
+    await shvclient.unsubscribe(RpcRI(path, "*", method or ""))
 
 
 @builtin(aliases={"subs", "test"})
