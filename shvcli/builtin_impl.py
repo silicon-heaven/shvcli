@@ -5,7 +5,6 @@ import inspect
 import itertools
 
 from prompt_toolkit.completion import Completion
-from shv import RpcSubscription
 
 from .builtin import METHODS, Argument, XMethod, builtin, xbuiltin
 from .client import Node, SHVClient
@@ -22,11 +21,13 @@ def argument_signal_comp(
 ) -> collections.abc.Iterable[Completion]:
     """Completion for subscribe argument."""
     if ":" in items.param_raw:
-        path, method = items.interpret_param_method(config)
-        assert method is not None
-        node = shvclient.tree.get_path(path)
+        ri = items.interpret_param_ri(config)
+        node = shvclient.tree.get_path(ri.path)
         if node is not None:
-            yield from comp_from(method, node.signals)
+            if items.param_raw.count(":") == 1:
+                yield from comp_from(ri.method, node.methods)
+            else:
+                yield from comp_from(ri.signal, node.signals)
     else:
         yield from comp_path(shvclient, config, items)
 
@@ -70,15 +71,13 @@ async def _help(_: SHVClient, __: CliConfig, ___: CliItems) -> None:
 @builtin(aliases={"sub"}, argument=argument_signal)
 async def subscribe(shvclient: SHVClient, config: CliConfig, items: CliItems) -> None:
     """Add new subscribe."""
-    path, method = items.interpret_param_method(config)
-    await shvclient.subscribe(RpcSubscription(path, method or ""))
+    await shvclient.subscribe(items.interpret_param_ri(config))
 
 
 @builtin(aliases={"usub"}, argument=argument_signal)
 async def unsubscribe(shvclient: SHVClient, config: CliConfig, items: CliItems) -> None:
     """Unsubscribe existing subscription."""
-    path, method = items.interpret_param_method(config)
-    await shvclient.unsubscribe(RpcSubscription(path, method or ""))
+    await shvclient.unsubscribe(items.interpret_param_ri(config))
 
 
 @builtin(aliases={"subs", "test"})

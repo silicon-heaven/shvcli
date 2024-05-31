@@ -3,7 +3,7 @@
 import dataclasses
 import enum
 
-from shv import SHVType
+from shv import RpcRI, SHVType
 from shv.cpon import Cpon
 
 from .config import CliConfig
@@ -39,16 +39,6 @@ class CliItems:
             return None
         return Cpon.unpack(self.param_raw)
 
-    @property
-    def param_method(self) -> tuple[str, str | None]:
-        """Interpret parameter as path and method."""
-        if ":" in self.param_raw:
-            path, method = self.param_raw.split(":", maxsplit=1)
-            return path, method
-        if "/" in self.param_raw:
-            return self.param_raw, None
-        return "", self.param_raw
-
     def interpret_param_path(self, config: CliConfig) -> str:
         """Interpret parameter as path specification.
 
@@ -56,16 +46,15 @@ class CliItems:
         """
         return config.shvpath([self.path, self.param_raw])
 
-    def interpret_param_method(self, config: CliConfig) -> tuple[str, str | None]:
-        """Interpret parameter as method specification.
+    def interpret_param_ri(self, config: CliConfig) -> RpcRI:
+        """Interpret parameter as RI.
 
-        Compared to :meth:`param_method` this provides a full combination of
-        path and method not just parsed :prop:`param_raw`.
+        The path in RI is combined with pat in the configuration.
 
-        :return: pair of SHV path and method name that is from parameter.
+        :return: SHV RPC RI.
         """
-        param_path, method = self.param_method
-        return config.shvpath([self.path, param_path]), method
+        ri = RpcRI.parse(self.param_raw)
+        return dataclasses.replace(ri, path=config.shvpath([self.path, ri.path]))
 
     def interpret_param_set(self) -> tuple[str | None, str | None]:
         """Interpret parameter as 'set' method specification.

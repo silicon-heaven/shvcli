@@ -26,8 +26,7 @@ class Node(collections.abc.Mapping[str, "Node"]):
     def __init__(self) -> None:
         """Initialize the node."""
         self.nodes: dict[str, Node] = {}
-        self.methods: set[str] = {"ls", "dir"}
-        self.signals: set[str] = set()
+        self.methods: dict[str, set[str]] = {"ls": {"lsmod"}, "dir": set()}
         self.nodes_probed = False
         self.methods_probed = False
 
@@ -83,8 +82,7 @@ class Node(collections.abc.Mapping[str, "Node"]):
         """Dump the data to basic types."""
         return {
             "nodes": {n: v.dump() for n, v in self.nodes.items()},
-            "methods": list(self.methods),
-            "signals": list(self.signals),
+            "methods": {n: list(v) for n, v in self.methods.items()},
             "nodes_probed": self.nodes_probed,
             "methods_probed": self.methods_probed,
         }
@@ -96,10 +94,8 @@ class Node(collections.abc.Mapping[str, "Node"]):
         res = cls()
         if isinstance(data["nodes"], collections.abc.Mapping):
             res.nodes = {n: cls.load(v) for n, v in data["nodes"].items()}
-        if isinstance(data["methods"], collections.abc.Sequence):
-            res.methods = set(data["methods"])
-        if isinstance(data["signals"], collections.abc.Sequence):
-            res.signals = set(data["signals"])
+        if isinstance(data["methods"], collections.abc.Mapping):
+            res.methods = {str(n): set(v) for n, v in data["methods"].items()}
         res.nodes_probed = bool(data["nodes_probed"])
         res.methods_probed = bool(data["methods_probed"])
         return res
@@ -124,10 +120,10 @@ class SHVClient(SimpleClient):
     async def _message(self, msg: RpcMessage) -> None:
         await super()._message(msg)
         if msg.is_signal:
-            method = msg.method
-            assert method is not None
-            self.tree.valid_path(msg.path or "").signals.add(method)
-            print(f"{msg.path}:{method}: {Cpon.pack(msg.param)}")
+            self.tree.valid_path(msg.path or "").methods.setdefault(
+                msg.source, set()
+            ).add(msg.signal_name)
+            print(f"{msg.path}:{msg.source}:{msg.signal_name}: {Cpon.pack(msg.param)}")
 
     async def ls(self, path: str) -> list[str]:
         """List same as in ValueClient but with result being preserved in tree."""
@@ -154,9 +150,10 @@ class SHVClient(SimpleClient):
             raise exc
         node = self.tree.valid_path(path)
         node.methods = {
-            d.name for d in res if RpcMethodFlags.NOT_CALLABLE not in d.flags
+            d.name: set(d.signals)
+            for d in res
+            if RpcMethodFlags.NOT_CALLABLE not in d.flags
         }
-        node.signals = {d.name for d in res if RpcMethodFlags.NOT_CALLABLE in d.flags}
         node.methods_probed = True
         return res
 
@@ -177,9 +174,9 @@ class SHVClient(SimpleClient):
         except RpcMethodNotFoundError as exc:
             raise exc
         except RpcError as exc:
-            self.tree.valid_path(path).methods.add(method)
+            self.tree.valid_path(path).methods.setdefault(method, set())
             raise exc
-        self.tree.valid_path(path).methods.add(method)
+        self.tree.valid_path(path).methods.setdefault(method, set())
         return res
 
     async def probe(self, path: str) -> Node | None:
