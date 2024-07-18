@@ -10,7 +10,9 @@ from .client import SHVClient
 from .config import CliConfig
 from .parse import CliItems
 
-_T_METHOD = typing.Callable[[SHVClient, CliConfig, CliItems], typing.Awaitable[None]]
+_T_METHOD = typing.Callable[
+    [SHVClient, CliConfig, CliItems], typing.Awaitable[None] | None
+]
 _T_XMETHOD = typing.Callable[
     [SHVClient, CliConfig, CliItems, int | None], typing.Awaitable[None]
 ]
@@ -115,7 +117,10 @@ async def call_builtin(
         return
 
     if isinstance(m, Method):
-        return await m.func(shvclient, config, items)
+        res = m.func(shvclient, config, items)
+        if isinstance(res, collections.abc.Awaitable):
+            await res
+        return
 
     typing.assert_type(m, XMethod)
     strnum = items.method[len(m.name) + 1 :]

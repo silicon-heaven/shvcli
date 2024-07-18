@@ -26,8 +26,8 @@ def argument_signal_comp(
         if node is not None:
             if items.param_raw.count(":") == 1:
                 yield from comp_from(ri.method, node.methods)
-            else:
-                yield from comp_from(ri.signal, node.signals)
+            elif ri.method in node.methods:
+                yield from comp_from(ri.signal, node.methods[ri.method])
     else:
         yield from comp_path(shvclient, config, items)
 
@@ -54,7 +54,7 @@ argument_set = Argument("[OPTION [VALUE]]", argument_set_comp)
 
 
 @builtin("help", {"h"}, hidden=True)
-async def _help(_: SHVClient, __: CliConfig, ___: CliItems) -> None:
+def _help(_: SHVClient, __: CliConfig, ___: CliItems) -> None:
     """Print help for all builtin methods."""
     print_row("Available internal methods (all prefixed with '!'):")
     for name, m in METHODS.items():
@@ -87,7 +87,7 @@ async def subscriptions(shvclient: SHVClient, _: CliConfig, __: CliItems) -> Non
 
 
 @builtin(aliases={"t"}, argument=argument_path)
-async def tree(shvclient: SHVClient, config: CliConfig, items: CliItems) -> None:
+def tree(shvclient: SHVClient, config: CliConfig, items: CliItems) -> None:
     """Print tree of nodes discovered in this session."""
 
     def print_node(node: Node, cols: list[bool]) -> None:
@@ -125,7 +125,7 @@ async def scan(
 
 
 @builtin("set", aliases={"s"}, argument=argument_set)
-async def _set(_: SHVClient, config: CliConfig, items: CliItems) -> None:
+def _set(_: SHVClient, config: CliConfig, items: CliItems) -> None:
     """Set configuration options in runtime."""
     opt, val = items.interpret_param_set()
     if not opt:

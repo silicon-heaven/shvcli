@@ -61,7 +61,8 @@ class CliCompleter(Completer):
             CliFlags.COMPLETE_CALL not in items.flags
             or items.method in {"ls", "dir"}
             or (
-                items.method[0] == "!"
+                items.method
+                and items.method[0] == "!"
                 and (bmethod := builtin.get_builtin(items.method[1:])) is not None
                 and bmethod.argument
                 and bmethod.argument.autoprobe

@@ -101,9 +101,9 @@ class CliConfig:
                 self.__rurl = self.__url
             elif isinstance(self.__url, str):
                 self.__rurl = RpcUrl.parse(
-                    subprocess.run(
+                    subprocess.run(  # noqa S602
                         f"printf '%s' \"{self.__url}\"",
-                        shell=True,  # noqa S602
+                        shell=True,
                         stdout=subprocess.PIPE,
                         check=True,
                     ).stdout.decode()
