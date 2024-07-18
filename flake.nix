@@ -14,7 +14,7 @@
       pyproject = trivial.importTOML ./pyproject.toml;
       src = builtins.path {
         path = ./.;
-        filter = path: type: ! hasSuffix ".nix" path;
+        filter = path: _: ! hasSuffix ".nix" path;
       };
 
       list2attr = list: attr: attrValues (getAttrs list attr);
@@ -26,20 +26,20 @@
         python3Packages.buildPythonApplication {
           pname = pyproject.project.name;
           inherit (pyproject.project) version;
-          format = "pyproject";
           inherit src;
-          nativeBuildInputs = [python3Packages.setuptools];
+          pyproject = true;
+          build-system = [python3Packages.setuptools];
           propagatedBuildInputs = requires python3Packages;
         };
     in
       {
         overlays = {
-          noInherit = final: prev: {
+          pkgs = final: _: {
             shvcli = final.callPackage shvcli {};
           };
           default = composeManyExtensions [
             pyshv.overlays.default
-            self.overlays.noInherit
+            self.overlays.pkgs
           ];
         };
       }
@@ -53,6 +53,8 @@
           default = pkgs.mkShell {
             packages = with pkgs; [
               editorconfig-checker
+              statix
+              deadnix
               gitlint
               ruff
               (python3.withPackages (p:
