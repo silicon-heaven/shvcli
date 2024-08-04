@@ -3,7 +3,7 @@
 import dataclasses
 import enum
 
-from shv import RpcRI, SHVType
+from shv import SHVType
 from shv.cpon import Cpon
 
 from .config import CliConfig
@@ -46,15 +46,18 @@ class CliItems:
         """
         return config.shvpath([self.path, self.param_raw])
 
-    def interpret_param_ri(self, config: CliConfig) -> RpcRI:
+    def interpret_param_ri(self, config: CliConfig, expand: bool = True) -> str:
         """Interpret parameter as RI.
 
         The path in RI is combined with pat in the configuration.
 
         :return: SHV RPC RI.
         """
-        ri = RpcRI.parse(self.param_raw)
-        return dataclasses.replace(ri, path=config.shvpath([self.path, ri.path]))
+        parts = self.param_raw.split(":")
+        path = parts[0] if parts[0] else "**"
+        method = parts[1] if len(parts) == 2 else "*"
+        signal = parts[2] if len(parts) == 3 else "*"
+        return f"{self.path}{"/" if path else ""}{path}:{method}:{signal}"
 
     def interpret_param_set(self) -> tuple[str | None, str | None]:
         """Interpret parameter as 'set' method specification.

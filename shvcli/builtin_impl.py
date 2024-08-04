@@ -21,13 +21,13 @@ def argument_signal_comp(
 ) -> collections.abc.Iterable[Completion]:
     """Completion for subscribe argument."""
     if ":" in items.param_raw:
-        ri = items.interpret_param_ri(config)
-        node = shvclient.tree.get_path(ri.path)
+        path, method, signal = items.interpret_param_ri(config).split(":")
+        node = shvclient.tree.get_path(path)
         if node is not None:
             if items.param_raw.count(":") == 1:
-                yield from comp_from(ri.method, node.methods)
-            elif ri.method in node.methods:
-                yield from comp_from(ri.signal, node.methods[ri.method])
+                yield from comp_from(method, node.methods)
+            elif method in node.methods:
+                yield from comp_from(signal, node.methods[method])
     else:
         yield from comp_path(shvclient, config, items)
 
