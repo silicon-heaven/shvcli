@@ -52,7 +52,7 @@ async def _app(config: CliConfig, shvclient: SHVClient) -> None:
                         [prompt_path, ("", "> ")], vi_mode=config.vimode
                     )
             except EOFError:
-                shvclient.client.disconnect()
+                await shvclient.disconnect()
                 return
             await handle_line(shvclient, config, result)
         except KeyboardInterrupt:
