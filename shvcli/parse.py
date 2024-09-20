@@ -46,18 +46,21 @@ class CliItems:
         """
         return config.shvpath([self.path, self.param_raw])
 
-    def interpret_param_ri(self, config: CliConfig, expand: bool = True) -> str:
+    def interpret_param_ri(self, config: CliConfig, expand: bool = True) -> list[str]:
         """Interpret parameter as RI.
 
         The path in RI is combined with pat in the configuration.
 
         :return: SHV RPC RI.
         """
-        parts = self.param_raw.split(":")
-        path = parts[0] if parts[0] else "**"
-        method = parts[1] if len(parts) == 2 else "*"
-        signal = parts[2] if len(parts) == 3 else "*"
-        return f"{self.path}{"/" if path else ""}{path}:{method}:{signal}"
+        res = []
+        for item in self.param_raw.split():
+            parts = item.split(":")
+            path = parts[0] if parts[0] else "**"
+            method = parts[1] if len(parts) == 2 else "*"
+            signal = parts[2] if len(parts) == 3 else "*"
+            res.append(f"{self.path}{"/" if self.path else ""}{path}:{method}:{signal}")
+        return res
 
     def interpret_param_set(self) -> tuple[str | None, str | None]:
         """Interpret parameter as 'set' method specification.

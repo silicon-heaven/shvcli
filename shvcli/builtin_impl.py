@@ -13,7 +13,7 @@ from .config import CliConfig
 from .lsdir import ls_node_format
 from .parse import CliItems
 from .scan import scan_nodes
-from .tools import lookahead, print_block, print_ftext, print_row
+from .tools import lookahead, print_block, print_flist, print_ftext, print_row
 
 
 def argument_signal_comp(
@@ -21,10 +21,10 @@ def argument_signal_comp(
 ) -> collections.abc.Iterable[Completion]:
     """Completion for subscribe argument."""
     if ":" in items.param_raw:
-        path, method, signal = items.interpret_param_ri(config).split(":")
+        path, method, signal = items.interpret_param_ri(config)[-1].split(":")
         node = shvclient.tree.get_path(path)
         if node is not None:
-            if items.param_raw.count(":") == 1:
+            if items.param_raw.rsplit(maxsplit=1)[-1].count(":") == 1:
                 yield from comp_from(method, node.methods)
             elif method in node.methods:
                 yield from comp_from(signal, node.methods[method])
@@ -71,19 +71,28 @@ def _help(_: SHVClient, __: CliConfig, ___: CliItems) -> None:
 @builtin(aliases={"sub"}, argument=argument_signal)
 async def subscribe(shvclient: SHVClient, config: CliConfig, items: CliItems) -> None:
     """Add new subscribe."""
-    await shvclient.subscribe(items.interpret_param_ri(config))
+    for ri in items.interpret_param_ri(config):
+        await shvclient.subscribe(ri)
 
 
 @builtin(aliases={"usub"}, argument=argument_signal)
 async def unsubscribe(shvclient: SHVClient, config: CliConfig, items: CliItems) -> None:
     """Unsubscribe existing subscription."""
-    await shvclient.unsubscribe(items.interpret_param_ri(config))
+    for ri in items.interpret_param_ri(config):
+        await shvclient.unsubscribe(ri)
 
 
 @builtin(aliases={"subs", "test"})
 async def subscriptions(shvclient: SHVClient, _: CliConfig, __: CliItems) -> None:
     """List current subscriptions."""
-    print(await shvclient.call(".app/broker/currentClient", "subscriptions"))
+    subs = await shvclient.call(".broker/currentClient", "subscriptions")
+    if isinstance(subs, dict):
+        print_flist(
+            ("", sub + (f"?{timeout}secs" if timeout is not None else ""))
+            for sub, timeout in subs.items()
+        )
+    else:
+        print(subs)
 
 
 @builtin(aliases={"t"}, argument=argument_path)
