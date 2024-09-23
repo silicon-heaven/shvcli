@@ -21,6 +21,12 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "-s",
+        "--subscribe",
+        action="append",
+        default=[],
+        help="Automatic subscription right after connection.",
+    )
+    parser.add_argument(
         "--scan",
         action="store_true",
         help="Perform scan as a first action right after connect.",
@@ -49,7 +55,7 @@ def main() -> None:
     config.debug = config.debug or args.debug
     config.initial_scan = args.scan
     config.initial_scan_depth = args.scan_depth
-    asyncio.run(run(config))
+    asyncio.run(run(config, args.subscribe))
 
 
 if __name__ == "__main__":

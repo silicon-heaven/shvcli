@@ -59,10 +59,12 @@ async def _app(config: CliConfig, shvclient: SHVClient) -> None:
             continue
 
 
-async def run(config: CliConfig) -> None:
+async def run(config: CliConfig, subscriptions: list[str]) -> None:
     """Loop to run interactive CLI session."""
     shvclient = await SHVClient.connect(config.url)
     assert isinstance(shvclient, SHVClient)
+    for ri in subscriptions:
+        await shvclient.subscribe(ri)
 
     if config.cache:
         cacheurl = RpcUrl(
