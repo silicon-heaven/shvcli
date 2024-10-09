@@ -15,9 +15,9 @@ from shv import (
     SHVType,
     SimpleClient,
 )
-from shv.cpon import Cpon
 
 from . import VERSION
+from .tools import print_cpon
 
 
 class Node(collections.abc.Mapping[str, "Node"]):
@@ -123,7 +123,7 @@ class SHVClient(SimpleClient):
             self.tree.valid_path(msg.path or "").methods.setdefault(
                 msg.source, set()
             ).add(msg.signal_name)
-            print(f"{msg.path}:{msg.source}:{msg.signal_name}: {Cpon.pack(msg.param)}")
+            print_cpon(msg.param, f"{msg.path}:{msg.source}:{msg.signal_name}: ", True)
 
     async def ls(self, path: str) -> list[str]:
         """List same as in ValueClient but with result being preserved in tree."""

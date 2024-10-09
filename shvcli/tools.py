@@ -1,6 +1,7 @@
 """Various tools used in the code."""
 
 import collections.abc
+import itertools
 import os
 import textwrap
 import typing
@@ -118,16 +119,31 @@ def cpon_ftext(cpon: str) -> collections.abc.Iterator[tuple[str, str]]:
             yield "", "\n"
 
 
-def print_cpon(data: shv.SHVType, short: bool = False) -> None:
+def _wrap_cpon(cpon: str) -> collections.abc.Iterator[str]:
+    """Wrap CPON.
+
+    It is better to wrap CPON on division characters rather than white spaces
+    because those are part of the data.
+    """
+    cols = os.get_terminal_size().columns
+    while len(cpon) > cols:
+        i = max(cpon.rfind(sep, 0, cols) for sep in (",", "]", "}"))
+        if i == -1:
+            i = cols
+        yield cpon[: i + 1]
+        cpon = " " + cpon[i + 1 :]
+    yield cpon
+
+
+def print_cpon(data: shv.SHVType, prefix: str = "", short: bool = False) -> None:
     """Print given data in CPON format."""
-    simple = shv.Cpon.pack(data)
-    if len(simple) > os.get_terminal_size().columns:
-        if short:
-            print_row(cpon_ftext(simple))
-        else:
-            for line in shv.Cpon.pack(
-                data, shv.CponWriter.Options(indent=b" ")
-            ).splitlines():
-                print_row(cpon_ftext(line))
+    if short:
+        cpon = "\n".join(_wrap_cpon(prefix + shv.Cpon.pack(data)))[len(prefix) :]
+        print_ftext(itertools.chain(iter((("", prefix),)), cpon_ftext(cpon)))
     else:
-        print_ftext(cpon_ftext(simple))
+        print_row(
+            itertools.chain(
+                iter((("", prefix),)),
+                cpon_ftext(shv.Cpon.pack(data, shv.CponWriter.Options(indent=b" "))),
+            )
+        )
