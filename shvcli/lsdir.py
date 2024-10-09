@@ -42,12 +42,26 @@ def dir_method_format(method: RpcMethodDesc) -> tuple[str, str]:
             methstyle = "ansimagenta"
         else:
             methstyle = "ansigreen"
-    elif method.signals or RpcMethodFlags.NOT_CALLABLE in method.flags:
+    elif method.signals:
         methstyle = "ansipurple"
     name = method.name
     return (
         methstyle,
         f'"{name}"' if any(c in name for c in string.whitespace) else name,
+    )
+
+
+def dir_signal_format(method: RpcMethodDesc, signal: str) -> tuple[str, str]:
+    """Print format for signals."""
+    sigstyle = "ansipurple"
+    if method.name in {"ls", "dir"}:
+        sigstyle = "ansibrightblack"
+    elif RpcMethodFlags.GETTER in method.flags:
+        sigstyle = "ansimagenta"
+    label = f"{method.name}:{signal}"
+    return (
+        sigstyle,
+        f'"{label}"' if any(c in label for c in string.whitespace) else label,
     )
 
 
@@ -94,6 +108,8 @@ async def dir_method(shvclient: SHVClient, config: CliConfig, items: CliItems) -
     if config.autoget and any(_use_autoget(d) for d in dirr):
         w = max(len(d.name) for d in dirr)
         for d in dirr:
+            if RpcMethodFlags.NOT_CALLABLE in d.flags:
+                continue  # Ignore not callable
             n = [("", " " * (w - len(d.name))), dir_method_format(d)]
             if _use_autoget(d):
                 try:
@@ -110,6 +126,8 @@ async def dir_method(shvclient: SHVClient, config: CliConfig, items: CliItems) -
             print_row(n)
     else:
         print_flist(dir_method_format(d) for d in dirr)
+    if any(d.signals for d in dirr):
+        print_flist(dir_signal_format(d, s) for d in dirr for s in d.signals)
 
 
 def _use_autoget(method: RpcMethodDesc) -> bool:
