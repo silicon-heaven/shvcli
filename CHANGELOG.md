@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2024-10-09
+### Added
+- Launch parameter `-s` to automatically subscribe right after login
+- `!sub` and `!usub` now accepts multiple RIs
+
+### Changed
+- Minimal supported version of pySHV is now 0.7.1
+- Received signals are now formatted and not printed on the single line
+- `!subs` now prints RIs as a formatted text
+- Formatted `dir` output now also provide list of signals
+
+### Fixed
+- `!sub` now correctly uses the current relative path to create RI
+
+
 ## [0.5.0] - 2024-08-22
 ### Changed
 - Minimal supported version of pySHV is now 0.7.0

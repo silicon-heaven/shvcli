@@ -1,6 +1,6 @@
 [project]
 name = "shvcli"
-version = "0.5.0"
+version = "0.6.0"
 description = "Silicon Heaven CLI access application"
 readme = "README.rst"
 license = {file = "LICENSE"}
