@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+### Fixed
+- Output of the calls is no longer truncated (regression since 0.6.0)
+
+
 ## [0.6.0] - 2024-10-09
 ### Added
 - Launch parameter `-s` to automatically subscribe right after login

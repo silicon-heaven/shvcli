@@ -141,7 +141,7 @@ def print_cpon(data: shv.SHVType, prefix: str = "", short: bool = False) -> None
         cpon = "\n".join(_wrap_cpon(prefix + shv.Cpon.pack(data)))[len(prefix) :]
         print_ftext(itertools.chain(iter((("", prefix),)), cpon_ftext(cpon)))
     else:
-        print_row(
+        print_ftext(
             itertools.chain(
                 iter((("", prefix),)),
                 cpon_ftext(shv.Cpon.pack(data, shv.CponWriter.Options(indent=b" "))),
