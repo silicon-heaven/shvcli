@@ -5,7 +5,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Configuration options `call_attempts`, `call_timeout`, and `autoget_timeout`
+  to allow control over call timeouts
+
 ### Fixed
+- Call timeout handling so shvcli no longer gets stuck on timeout
 - Output of the calls is no longer truncated (regression since 0.6.0)
 - Configuration option `config.cache` is no longer reported as invalid
 

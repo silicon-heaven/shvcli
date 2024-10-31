@@ -85,9 +85,12 @@ async def ls_method(shvclient: SHVClient, config: CliConfig, items: CliItems) ->
                 if "get" in nv.methods:
                     try:
                         resp = await shvclient.call(
-                            str(pathlib.PurePosixPath(shvpath) / nn), "get"
+                            str(pathlib.PurePosixPath(shvpath) / nn),
+                            "get",
+                            call_attempts=1,
+                            call_timeout=config.autoget_timeout,
                         )
-                    except RpcError:
+                    except (RpcError, TimeoutError):
                         pass
                     else:
                         print_row(
@@ -113,8 +116,13 @@ async def dir_method(shvclient: SHVClient, config: CliConfig, items: CliItems) -
             n = [("", " " * (w - len(d.name))), dir_method_format(d)]
             if _use_autoget(d):
                 try:
-                    resp = await shvclient.call(shvpath, d.name)
-                except RpcError:
+                    resp = await shvclient.call(
+                        shvpath,
+                        d.name,
+                        call_attempts=1,
+                        call_timeout=config.autoget_timeout,
+                    )
+                except (RpcError, TimeoutError):
                     pass
                 else:
                     print_row(

@@ -117,9 +117,15 @@ async def handle_line(shvclient: SHVClient, config: CliConfig, cmdline: str) -> 
                 else:
                     print_cpon(
                         await shvclient.call(
-                            config.shvpath(items.path), items.method, param
+                            config.shvpath(items.path),
+                            items.method,
+                            param,
+                            call_attempts=config.call_attempts,
+                            call_timeout=config.call_timeout,
                         )
                     )
+        except TimeoutError:
+            print("Call timed out.")
         except RpcError as exc:
             print(f"{type(exc).__name__}: {exc.message}")
     else:

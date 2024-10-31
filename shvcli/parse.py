@@ -59,7 +59,7 @@ class CliItems:
             path = parts[0] if parts[0] else "**"
             method = parts[1] if len(parts) == 2 else "*"
             signal = parts[2] if len(parts) == 3 else "*"
-            res.append(f"{self.path}{"/" if self.path else ""}{path}:{method}:{signal}")
+            res.append(f"{self.path}{'/' if self.path else ''}{path}:{method}:{signal}")
         return res
 
     def interpret_param_set(self) -> tuple[str | None, str | None]:

@@ -4,6 +4,7 @@ import collections.abc
 import configparser
 import enum
 import functools
+import itertools
 import logging
 import pathlib
 import subprocess
@@ -20,6 +21,7 @@ class CliConfig:
 
         BOOL = enum.auto()
         INT = enum.auto()
+        FLOAT = enum.auto()
 
     OPTS: collections.abc.Mapping[str, Type] = {
         "vimode": Type.BOOL,
@@ -27,6 +29,9 @@ class CliConfig:
         "autoprobe": Type.BOOL,
         "raw": Type.BOOL,
         "debug": Type.BOOL,
+        "call_attempts": Type.INT,
+        "call_timeout": Type.FLOAT,
+        "autoget_timeout": Type.FLOAT,
     }
     """Options allowed to be set in runtime and from configuration file.
 
@@ -38,7 +43,7 @@ class CliConfig:
     }
     """Options allowed to be set only from configuration file."""
 
-    def __init__(self) -> None:
+    def __init__(self) -> None:  # noqa: PLR0915
         """Initialize the configuration to the default and load config files."""
         self.hosts: dict[str, RpcUrl] = {}
         """Hosts that can be used instead of URL."""
@@ -59,6 +64,13 @@ class CliConfig:
         """Interpret ls and dir method calls internally or not."""
         self.cache: bool = True
         """Preserve cache between executions. Not modifiable in runtime!"""
+        self.call_attempts: int = 1
+        """Number of call attempts before call is abandoned."""
+        self.call_timeout: float = 5.0
+        """Timeout in seconds before call is abandoned."""
+        self.autoget_timeout: float = 1.0
+        """Timeout in seconds for call that is part of autoget feature."""
+
         self.initial_scan: bool = False
         """Perform scan right after connection."""
         self.initial_scan_depth: int = 3
@@ -87,6 +99,8 @@ class CliConfig:
                                 value = sec.getboolean(n, fallback=value)
                             case self.Type.INT:
                                 value = sec.getint(n, fallback=value)
+                            case self.Type.FLOAT:
+                                value = sec.getfloat(n, fallback=value)
                             case _:
                                 raise NotImplementedError(f"Unhandled type: {t!r}")
                         setattr(self, n, value)
