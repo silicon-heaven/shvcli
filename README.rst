@@ -127,10 +127,7 @@ environment you are running in.
 
 **subscribe|sub**: Add new subscribe. Shortcut to the call of
 ``.app/broker/currentClient:subscribe`` that accepts arguments in more convenient
-way (you need to use Map if you call that method directly). The argument has
-same format such as method calls in this tool, that means ``PATH:METHOD`` where
-``METHOD`` can be left out to match all methods. Pattern subscribes are not
-supporter, yet.
+way. The argument can be multiple RPC RIs (``PATH:METHOD:SIGNAL`` patterns).
 
 **unsubscribe|usub**: Unsubscribe existing subscription. It is reverse operation
 to the **subscribe** and same remarks apply here as well. It is a shortcut to
@@ -152,11 +149,11 @@ cache.
 thus use it sparely.
 
 **set|s**: allows modification of configuration option in runtime.  The names
-are the same as in ``config`` section. The boolean options (the only ones
-available right now) are set if no argument is provided, or cleared if name is
-prefixed with ``no`` (and thus to disable ``raw`` you use ``noraw``). You can
-also provide argument ``true`` or ``false``. Without any configuration option it
-simply prints the current configuration.
+are the same as in ``config`` section. The boolean options  are set if no
+argument is provided, or cleared if name is prefixed with ``no`` (and thus to
+disable ``raw`` you use ``noraw``). You can also add ``=true`` or ``=false``.
+The equal sign is also used with integer and floating point options. Without any
+configuration option it simply prints the current configuration.
 
 
 Special methods ``ls`` and ``dir``

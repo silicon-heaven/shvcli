@@ -33,18 +33,26 @@ def argument_signal_comp(
 
 
 def argument_set_comp(
-    _: SHVClient, config: CliConfig, items: CliItems
+    client: SHVClient, config: CliConfig, items: CliItems
 ) -> collections.abc.Iterable[Completion]:
     """Completion for !set method."""
-    opt, val = items.interpret_param_set()
-    if val is not None:
-        if config.OPTS.get(opt or "") is config.Type.BOOL:
+    item = items.param_raw.split()[-1] if items.param_raw else ""
+    if "=" in item:
+        opt, _, val = item.partition("=")
+        if config.OPTS.get(opt) == config.Type.BOOL:
             yield from comp_from(val, {"true", "false"})
     else:
-        yield from comp_from(items.param_raw, config.OPTS.keys())
         yield from comp_from(
-            items.param_raw,
+            item,
+            (v for v, t in config.OPTS.items() if t is config.Type.BOOL),
+        )
+        yield from comp_from(
+            item,
             (f"no{v}" for v, t in config.OPTS.items() if t is config.Type.BOOL),
+        )
+        yield from comp_from(
+            item,
+            (f"{v}=" for v, t in config.OPTS.items() if t is not config.Type.BOOL),
         )
 
 
@@ -54,7 +62,7 @@ argument_set = Argument("[OPTION [VALUE]]", argument_set_comp)
 
 
 @builtin("help", {"h"}, hidden=True)
-def _help(_: SHVClient, __: CliConfig, ___: CliItems) -> None:
+def _help(client: SHVClient, config: CliConfig, items: CliItems) -> None:
     """Print help for all builtin methods."""
     print_row("Available internal methods (all prefixed with '!'):")
     for name, m in METHODS.items():
@@ -83,7 +91,9 @@ async def unsubscribe(shvclient: SHVClient, config: CliConfig, items: CliItems) 
 
 
 @builtin(aliases={"subs", "test"})
-async def subscriptions(shvclient: SHVClient, _: CliConfig, __: CliItems) -> None:
+async def subscriptions(
+    shvclient: SHVClient, config: CliConfig, items: CliItems
+) -> None:
     """List current subscriptions."""
     subs = await shvclient.call(".broker/currentClient", "subscriptions")
     if isinstance(subs, dict):
@@ -118,7 +128,7 @@ def tree(shvclient: SHVClient, config: CliConfig, items: CliItems) -> None:
 
 
 @builtin(argument=argument_path)
-async def cd(_: SHVClient, __: CliConfig, ___: CliItems) -> None:
+async def cd(client: SHVClient, config: CliConfig, itemst: CliItems) -> None:
     """Change to given path even if it is invalid."""
 
 
@@ -134,10 +144,9 @@ async def scan(
 
 
 @builtin("set", aliases={"s"}, argument=argument_set)
-def _set(_: SHVClient, config: CliConfig, items: CliItems) -> None:
+def _set(client: SHVClient, config: CliConfig, items: CliItems) -> None:
     """Set configuration options in runtime."""
-    opt, val = items.interpret_param_set()
-    if not opt:
+    if not items.param_raw.strip():
         w = max(len(n) for n in config.OPTS.keys())
         for n, t in config.OPTS.items():
             row = [("", (" " * (w - len(n))) + n + "  ")]
@@ -146,25 +155,39 @@ def _set(_: SHVClient, config: CliConfig, items: CliItems) -> None:
                     v = getattr(config, n)
                     assert isinstance(v, bool)
                     row.append(("ansigreen" if v else "ansired", str(v).lower()))
-                case config.Type.INT:
+                case config.Type.INT | config.Type.FLOAT:
                     row.append(("", str(getattr(config, n))))
                 case _:
                     raise NotImplementedError(f"Unimplemented {t!r}")
             print_row(row)
         return
 
-    # TODO from here we need add support for integers when we need it.
-    if no := opt.startswith("no"):
-        opt = opt[2:]
-    if opt not in config.OPTS.keys():
-        print(f"Invalid option: {opt}")
-        return
-    if val is None:
-        value = not no
-    else:
-        m = {"true": True, "t": True, "false": False, "f": False}
-        if val not in m:
-            print(f"Invalid value, expected 'true' or 'false': {val}")
+    for opt in items.param_raw.split():
+        if "=" in opt:
+            opt, _, val = opt.partition("=")  # noqa: PLW2901
+            if opt not in config.OPTS.keys():
+                print(f"Invalid option: {opt}")
+                return
+            value: bool | int | float
+            match config.OPTS[opt]:
+                case config.Type.BOOL:
+                    bools = {"true": True, "t": True, "false": False, "f": False}
+                    if val not in bools:
+                        print(f"Invalid value, expected 'true' or 'false': {val}")
+                        return
+                    value = bools[val]
+                case config.Type.INT:
+                    value = int(val, 0)
+                case config.Type.FLOAT:
+                    value = float(val)
+                case _:
+                    raise NotImplementedError(f"Unimplemented {t!r}")
+            setattr(config, opt, value)
+            continue
+
+        if no := opt.startswith("no"):
+            opt = opt[2:]  # noqa: PLW2901
+        if opt not in config.OPTS.keys():
+            print(f"Invalid option: {opt}")
             return
-        value = m[val]
-    setattr(config, opt, value)
+        setattr(config, opt, not no)
