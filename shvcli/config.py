@@ -28,9 +28,15 @@ class CliConfig:
         "raw": Type.BOOL,
         "debug": Type.BOOL,
     }
-    """All options allowed to be set in runtime.
+    """Options allowed to be set in runtime and from configuration file.
+
     You can use :func:`setattr` and :func:`getattr`.
     """
+
+    COPTS: collections.abc.Mapping[str, Type] = {
+        "cache": Type.BOOL,
+    }
+    """Options allowed to be set only from configuration file."""
 
     def __init__(self) -> None:
         """Initialize the configuration to the default and load config files."""
@@ -74,17 +80,17 @@ class CliConfig:
                     if self.hosts_shell and self.__url is None:
                         self.__url = self.hosts_shell[next(iter(self.hosts_shell))]
                 case "config":
-                    for n, t in self.OPTS.items():
+                    for n, t in itertools.chain(self.OPTS.items(), self.COPTS.items()):
                         value = getattr(self, n)
                         match t:
                             case self.Type.BOOL:
                                 value = sec.getboolean(n, fallback=value)
                             case self.Type.INT:
-                                value = sec.getinteger(n, fallback=value)
+                                value = sec.getint(n, fallback=value)
                             case _:
                                 raise NotImplementedError(f"Unhandled type: {t!r}")
                         setattr(self, n, value)
-                    if opts := set(sec.keys()) - set(self.OPTS.keys()):
+                    if opts := set(sec.keys()) - set(self.OPTS) - set(self.COPTS):
                         raise ValueError(
                             f"Invalid configuration option: {', '.join(opts)}"
                         )

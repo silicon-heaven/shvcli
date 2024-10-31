@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Fixed
 - Output of the calls is no longer truncated (regression since 0.6.0)
+- Configuration option `config.cache` is no longer reported as invalid
 
 
 ## [0.6.0] - 2024-10-09
