@@ -9,7 +9,7 @@
     pyshv,
   }: let
     inherit (builtins) match;
-    inherit (flake-utils.lib) eachDefaultSystem filterPackages;
+    inherit (flake-utils.lib) eachSystem defaultSystems filterPackages;
     inherit (nixpkgs.lib) head trivial hasSuffix attrValues getAttrs composeManyExtensions;
 
     pyproject = trivial.importTOML ./pyproject.toml;
@@ -50,7 +50,7 @@
         ];
       };
     }
-    // eachDefaultSystem (system: let
+    // eachSystem (defaultSystems ++ ["armv7l-linux"]) (system: let
       pkgs = nixpkgs.legacyPackages.${system}.extend self.overlays.default;
     in {
       packages.default = pkgs."${name}";
