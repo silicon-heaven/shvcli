@@ -1,6 +1,7 @@
 """Command line interface."""
 
 import asyncio
+import contextlib
 import json
 import pathlib
 import re
@@ -30,13 +31,10 @@ async def _app(config: CliConfig, shvclient: SHVClient) -> None:
         with histfile.open("w") as _:
             pass
 
-    completer = CliCompleter(shvclient, config)
-    validator = CliValidator(shvclient, config)
-
     session: PromptSession = PromptSession(
         history=FileHistory(str(histfile)),
-        completer=completer,
-        validator=validator,
+        completer=CliCompleter(shvclient, config),
+        validator=CliValidator(shvclient, config),
     )
     while True:
         try:
@@ -52,7 +50,6 @@ async def _app(config: CliConfig, shvclient: SHVClient) -> None:
                         [prompt_path, ("", "> ")], vi_mode=config.vimode
                     )
             except EOFError:
-                await shvclient.disconnect()
                 return
             await handle_line(shvclient, config, result)
         except KeyboardInterrupt:
@@ -82,15 +79,20 @@ async def run(config: CliConfig, subscriptions: list[str]) -> None:
     if config.initial_scan:
         await scan_nodes(shvclient, "", config.initial_scan_depth)
 
-    clitask = asyncio.create_task(_app(config, shvclient))
-    await shvclient.client.wait_disconnect()
-    if not clitask.done():
+    app_task = asyncio.create_task(_app(config, shvclient))
+    disconnect_task = asyncio.create_task(shvclient.client.wait_disconnect())
+    tasks: set[asyncio.Task] = {app_task, disconnect_task}
+    await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
+    if disconnect_task.done():
         print("Disconnected.")
-        clitask.cancel()
-    try:
-        await clitask
-    except asyncio.CancelledError:
-        pass
+
+    if not app_task.done():
+        app_task.cancel()
+    with contextlib.suppress(asyncio.CancelledError):
+        await app_task
+    await shvclient.disconnect()
+    if not disconnect_task.done():
+        await disconnect_task
 
     if config.cache:
         cachepath.parent.mkdir(exist_ok=True)
