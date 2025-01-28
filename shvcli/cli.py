@@ -83,16 +83,16 @@ async def run(config: CliConfig, subscriptions: list[str]) -> None:
     disconnect_task = asyncio.create_task(shvclient.client.wait_disconnect())
     tasks: set[asyncio.Task] = {app_task, disconnect_task}
     await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
-    if disconnect_task.done():
-        print("Disconnected.")
 
     if not app_task.done():
         app_task.cancel()
+    if disconnect_task.done():
+        print("Disconnected.")
+    else:
+        await shvclient.disconnect()
+        await disconnect_task
     with contextlib.suppress(asyncio.CancelledError):
         await app_task
-    await shvclient.disconnect()
-    if not disconnect_task.done():
-        await disconnect_task
 
     if config.cache:
         cachepath.parent.mkdir(exist_ok=True)
