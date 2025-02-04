@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import collections.abc
+import contextlib
 import typing
 from pathlib import PurePosixPath
 
 from shv import (
     RpcError,
+    RpcInvalidParamError,
     RpcMessage,
     RpcMethodDesc,
     RpcMethodFlags,
@@ -26,7 +28,11 @@ class Node(collections.abc.Mapping[str, "Node"]):
     def __init__(self) -> None:
         """Initialize the node."""
         self.nodes: dict[str, Node] = {}
-        self.methods: dict[str, set[str]] = {"ls": {"lsmod"}, "dir": set()}
+        self.not_nodes: set[str] = set()
+        self.methods: dict[str, RpcMethodDesc | None] = {
+            "ls": RpcMethodDesc.stdls(),
+            "dir": RpcMethodDesc.stddir(),
+        }
         self.nodes_probed = False
         self.methods_probed = False
 
@@ -67,7 +73,7 @@ class Node(collections.abc.Mapping[str, "Node"]):
         if pnode is not None:
             pnode.nodes.pop(path.name)
 
-    def get_path(self, path: str | PurePosixPath) -> Node | None:
+    def get_node(self, path: str | PurePosixPath) -> Node | None:
         """Get node on given path."""
         if isinstance(path, str):
             path = PurePosixPath(path)
@@ -78,11 +84,19 @@ class Node(collections.abc.Mapping[str, "Node"]):
             node = node[n]
         return node
 
+    def get_method(self, path: str, method: str) -> RpcMethodDesc | None:
+        """Get method from given path."""
+        if (node := self.get_node(path)) is not None:
+            return node.methods.get(method, None)
+        return None
+
     def dump(self) -> dict[str, object]:
         """Dump the data to basic types."""
         return {
             "nodes": {n: v.dump() for n, v in self.nodes.items()},
-            "methods": {n: list(v) for n, v in self.methods.items()},
+            "methods": {
+                n: None if v is None else v.to_shv() for n, v in self.methods.items()
+            },
             "nodes_probed": self.nodes_probed,
             "methods_probed": self.methods_probed,
         }
@@ -95,7 +109,15 @@ class Node(collections.abc.Mapping[str, "Node"]):
         if isinstance(data["nodes"], collections.abc.Mapping):
             res.nodes = {n: cls.load(v) for n, v in data["nodes"].items()}
         if isinstance(data["methods"], collections.abc.Mapping):
-            res.methods = {str(n): set(v) for n, v in data["methods"].items()}
+            for n, v in data["methods"].items():
+                if not isinstance(v, collections.abc.Mapping):
+                    continue
+                with contextlib.suppress(RpcInvalidParamError, ValueError):
+                    res.methods[str(n)] = (
+                        None
+                        if v is None
+                        else RpcMethodDesc.from_shv({int(k): s for k, s in v.items()})
+                    )
         res.nodes_probed = bool(data["nodes_probed"])
         res.methods_probed = bool(data["methods_probed"])
         return res
@@ -120,9 +142,7 @@ class SHVClient(_SHVClient):
     async def _message(self, msg: RpcMessage) -> None:
         await super()._message(msg)
         if msg.is_signal:
-            self.tree.valid_path(msg.path or "").methods.setdefault(
-                msg.source, set()
-            ).add(msg.signal_name)
+            self.tree.valid_path(msg.path).methods.setdefault(msg.source, None)
             print_cpon(msg.param, f"{msg.path}:{msg.source}:{msg.signal_name}: ", True)
 
     async def ls(self, path: str) -> list[str]:
@@ -150,9 +170,7 @@ class SHVClient(_SHVClient):
             raise exc
         node = self.tree.valid_path(path)
         node.methods = {
-            d.name: set(d.signals)
-            for d in res
-            if RpcMethodFlags.NOT_CALLABLE not in d.flags
+            d.name: d for d in res if RpcMethodFlags.NOT_CALLABLE not in d.flags
         }
         node.methods_probed = True
         return res
@@ -174,18 +192,18 @@ class SHVClient(_SHVClient):
         except RpcMethodNotFoundError as exc:
             raise exc
         except RpcError as exc:
-            self.tree.valid_path(path).methods.setdefault(method, set())
+            self.tree.valid_path(path).methods.setdefault(method, None)
             raise exc
-        self.tree.valid_path(path).methods.setdefault(method, set())
+        self.tree.valid_path(path).methods.setdefault(method, None)
         return res
 
     async def probe(self, path: str) -> Node | None:
         """Probe operation, that is discover methods and children of the node."""
         try:
-            node = self.tree.get_path(path)
+            node = self.tree.get_node(path)
             if node is None:
                 await self.ls(path)
-            node = self.tree.get_path(path)
+            node = self.tree.get_node(path)
             assert node is not None
             if not node.methods_probed:
                 await self.dir(path)

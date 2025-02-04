@@ -53,7 +53,7 @@ def comp_path(
 ) -> collections.abc.Iterable[Completion]:
     """Completion for SHV path."""
     pth, comp = comp_path_identify(config, items)
-    node = shvclient.tree.get_path(pth)
+    node = shvclient.tree.get_node(pth)
     if node is not None:
         if comp in node:
             yield Completion(f"{comp}:", start_position=-len(comp))

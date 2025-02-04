@@ -22,12 +22,12 @@ def argument_signal_comp(
     """Completion for subscribe argument."""
     if ":" in items.param_raw:
         path, method, signal = items.interpret_param_ri(config)[-1].split(":")
-        node = shvclient.tree.get_path(path)
+        node = shvclient.tree.get_node(path)
         if node is not None:
             if items.param_raw.rsplit(maxsplit=1)[-1].count(":") == 1:
                 yield from comp_from(method, node.methods)
-            elif method in node.methods:
-                yield from comp_from(signal, node.methods[method])
+            elif mdesc := node.methods.get(method, None):
+                yield from comp_from(signal, mdesc.signals.keys())
     else:
         yield from comp_path(shvclient, config, items)
 
@@ -123,7 +123,7 @@ def tree(shvclient: SHVClient, config: CliConfig, items: CliItems) -> None:
             print_node(node[name], [*cols, hasnext])
 
     path = items.interpret_param_path(config)
-    if (node := shvclient.tree.get_path(path)) is not None:
+    if (node := shvclient.tree.get_node(path)) is not None:
         print_node(node, [])
 
 

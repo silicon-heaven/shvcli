@@ -40,7 +40,7 @@ async def _app(config: CliConfig, shvclient: SHVClient) -> None:
         try:
             prompt_path = (
                 "ansibrightred"
-                if shvclient.tree.get_path(config.path) is None
+                if shvclient.tree.get_node(config.path) is None
                 else "ansibrightblue",
                 config.shvpath(),
             )
@@ -113,7 +113,9 @@ async def handle_line(shvclient: SHVClient, config: CliConfig, cmdline: str) -> 
                 await dir_method(shvclient, config, items)
             else:
                 try:
-                    param = items.param
+                    # To cover case when typing is invalid we allow send valid
+                    # CPON and thus we do not pass type hint here.
+                    param = items.param()
                 except (ValueError, EOFError):
                     print(f"Invalid CPON format of parameter: {items.param_raw}")
                 else:

@@ -45,7 +45,7 @@ class CliCompleter(Completer):
                 return  # Completing only path now so do not follow with methods
 
         # Methods
-        node = self.shvclient.tree.get_path(self.config.shvpath(items.path))
+        node = self.shvclient.tree.get_node(self.config.shvpath(items.path))
         yield from comp_from(
             items.method,
             ["ls", "dir"] if node is None else node.methods,

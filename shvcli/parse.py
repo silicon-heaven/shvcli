@@ -1,10 +1,12 @@
 """Implementation of CLI parser."""
 
+import contextlib
 import dataclasses
 import enum
 
 from shv import SHVType
 from shv.cpon import Cpon
+from shv.rpctypes import RpcType, RpcTypeParseError, rpctype_parse
 
 from .config import CliConfig
 
@@ -32,12 +34,21 @@ class CliItems:
     flags: CliFlags = dataclasses.field(default_factory=lambda: CliFlags(0))
     """Flags signaling the presence of some important dividers."""
 
-    @property
-    def param(self) -> SHVType:
-        """Parameter to be passed to the method."""
-        if not self.param_raw:
-            return None
-        return Cpon.unpack(self.param_raw)
+    def param(self, rpctype: str = "") -> SHVType:
+        """Parameter to be passed to the method.
+
+        :param rpctype: The type info for the parameter.
+        """
+        tp: RpcType | None = None
+        with contextlib.suppress(RpcTypeParseError):
+            tp = rpctype_parse(rpctype)
+        try:
+            data = Cpon.unpack(self.param_raw) if self.param_raw else None
+        except (ValueError, EOFError) as exc:
+            raise ValueError(f"Invalid CPON: {exc}") from exc
+        if tp is not None and not tp.validate(data):
+            raise ValueError(f"Doesn't match RPC type: {rpctype}")
+        return data
 
     def interpret_param_path(self, config: CliConfig) -> str:
         """Interpret parameter as path specification.

@@ -69,7 +69,7 @@ async def ls_method(shvclient: SHVClient, config: CliConfig, items: CliItems) ->
     """SHV ls method that is just smarter than regular call."""
     shvpath = items.interpret_param_path(config)
     await shvclient.ls(shvpath)
-    node = shvclient.tree.get_path(shvpath)
+    node = shvclient.tree.get_node(shvpath)
     assert node is not None
     if config.autoget:
         for nn, nv in dict(node).items():

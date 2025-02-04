@@ -30,10 +30,11 @@ class CliValidator(Validator):
                 return
             # Any other command should have CPON as argument and thus validate
             # it as such.
+            method_desc = self.shvclient.tree.get_method(items.path, items.method)
             try:
-                _ = items.param
+                items.param(method_desc.param if method_desc else "")
             except (ValueError, EOFError) as exc:
-                raise ValidationError(message=f"Invalid CPON: {exc}") from exc
+                raise ValidationError(message=str(exc)) from exc
 
     async def validate_async(self, document: Document) -> None:
         """Validate in asyncio."""
