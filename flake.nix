@@ -59,11 +59,13 @@
       devShells = filterPackages system {
         default = pkgs.mkShell {
           packages = with pkgs; [
-            editorconfig-checker
-            statix
             deadnix
+            editorconfig-checker
             gitlint
             ruff
+            shellcheck
+            shfmt
+            statix
             (
               python3.withPackages (p:
                 [p.build p.twine p.mypy] ++ (requires p))

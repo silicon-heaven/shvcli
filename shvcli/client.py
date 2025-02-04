@@ -67,7 +67,7 @@ class Node(collections.abc.Mapping[str, "Node"]):
         if pnode is not None:
             pnode.nodes.pop(path.name)
 
-    def get_path(self, path: str | PurePosixPath) -> None | Node:
+    def get_path(self, path: str | PurePosixPath) -> Node | None:
         """Get node on given path."""
         if isinstance(path, str):
             path = PurePosixPath(path)
