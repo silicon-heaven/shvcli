@@ -13,8 +13,8 @@ from shv import (
     RpcMethodFlags,
     RpcMethodNotFoundError,
     SHVType,
-    SimpleClient,
 )
+from shv import SHVClient as _SHVClient
 
 from . import VERSION
 from .tools import print_cpon
@@ -101,7 +101,7 @@ class Node(collections.abc.Mapping[str, "Node"]):
         return res
 
 
-class SHVClient(SimpleClient):
+class SHVClient(_SHVClient):
     """Our client caching SHV Tree and reporting received signals."""
 
     APP_NAME = "shvcli"
