@@ -2,85 +2,28 @@
 
 import asyncio
 import contextlib
-import json
 import pathlib
-import re
 
-import xdg.BaseDirectory
 from prompt_toolkit import PromptSession
 from prompt_toolkit.history import FileHistory
 from prompt_toolkit.patch_stdout import patch_stdout
-from shv import RpcError, RpcLogin, RpcUrl
+from shv import RpcError
 
-from . import builtin_impl as _  # noqa F401
-from .builtin import call_builtin
-from .client import Node, SHVClient
+from .builtin import Builtins
+from .client import Client
+from .cliitems import CliItems
 from .complet import CliCompleter
-from .config import CliConfig
 from .lsdir import dir_method, ls_method
-from .parse import parse_line
-from .scan import scan_nodes
-from .tools import print_cpon
+from .options import CallAttemptsOption, CallTimeoutOption, RawOption, ViModeOption
+from .tools.print import print_cpon
+from .tree import Tree
 from .valid import CliValidator
 
 
-async def _app(config: CliConfig, shvclient: SHVClient) -> None:
-    """CLI application."""
-    histfile = pathlib.Path.home() / ".shvcli.history"
-    if not histfile.exists():
-        with histfile.open("w") as _:
-            pass
-
-    session: PromptSession = PromptSession(
-        history=FileHistory(str(histfile)),
-        completer=CliCompleter(shvclient, config),
-        validator=CliValidator(shvclient, config),
-    )
-    while True:
-        try:
-            prompt_path = (
-                "ansibrightred"
-                if shvclient.tree.get_node(config.path) is None
-                else "ansibrightblue",
-                config.shvpath(),
-            )
-            try:
-                with patch_stdout():
-                    result = await session.prompt_async(
-                        [prompt_path, ("", "> ")], vi_mode=config.vimode
-                    )
-            except EOFError:
-                return
-            await handle_line(shvclient, config, result)
-        except KeyboardInterrupt:
-            continue
-
-
-async def run(config: CliConfig, subscriptions: list[str]) -> None:
+async def run(client: Client) -> None:
     """Loop to run interactive CLI session."""
-    shvclient = await SHVClient.connect(config.url)
-    assert isinstance(shvclient, SHVClient)
-    for ri in subscriptions:
-        await shvclient.subscribe(ri)
-
-    if config.cache:
-        cacheurl = RpcUrl(
-            location=config.url.location,
-            port=config.url.port,
-            protocol=config.url.protocol,
-            login=RpcLogin(username=config.url.login.username),
-        )
-        cpath = xdg.BaseDirectory.save_cache_path("shvcli")
-        fname = re.sub(r"[^\w_. -]", "_", cacheurl.to_url())
-        cachepath = pathlib.Path(cpath).expanduser() / fname
-        if cachepath.exists():
-            with cachepath.open("r") as f:
-                shvclient.tree = Node.load(json.load(f))
-    if config.initial_scan:
-        await scan_nodes(shvclient, "", config.initial_scan_depth)
-
-    app_task = asyncio.create_task(_app(config, shvclient))
-    disconnect_task = asyncio.create_task(shvclient.client.wait_disconnect())
+    app_task = asyncio.create_task(cliapp(client))
+    disconnect_task = asyncio.create_task(client.client.wait_disconnect())
     tasks: set[asyncio.Task] = {app_task, disconnect_task}
     await asyncio.wait(tasks, return_when=asyncio.FIRST_COMPLETED)
 
@@ -89,43 +32,77 @@ async def run(config: CliConfig, subscriptions: list[str]) -> None:
     if disconnect_task.done():
         print("Disconnected.")
     else:
-        await shvclient.disconnect()
-        await disconnect_task
+        disconnect_task.cancel()
     with contextlib.suppress(asyncio.CancelledError):
         await app_task
-
-    if config.cache:
-        cachepath.parent.mkdir(exist_ok=True)
-        with cachepath.open("w") as f:
-            json.dump(shvclient.tree.dump(), f)
+    with contextlib.suppress(asyncio.CancelledError):
+        await disconnect_task
 
 
-async def handle_line(shvclient: SHVClient, config: CliConfig, cmdline: str) -> None:
+async def cliapp(client: Client) -> None:
+    """CLI application."""
+    histfile = pathlib.Path.home() / ".shvcli.history"
+    if not histfile.exists():
+        with histfile.open("w") as _:
+            pass
+
+    session: PromptSession = PromptSession(
+        history=FileHistory(str(histfile)),
+        completer=CliCompleter(client),
+        validator=CliValidator(client),
+    )
+    while True:
+        try:
+            prompt_path = (
+                "ansibrightred"
+                if Tree(client.state).get_node(client.state.path) is None
+                else "ansibrightblue",
+                str(client.state.path),
+            )
+            try:
+                with patch_stdout():
+                    result = await session.prompt_async(
+                        [prompt_path, ("", "> ")],
+                        vi_mode=bool(ViModeOption(client.state)),
+                    )
+            except EOFError:
+                return
+            await handle_line(client, result)
+        except KeyboardInterrupt:
+            continue
+
+
+async def handle_line(client: Client, cmdline: str) -> None:
     """Handle single command line invocation."""
-    items = parse_line(cmdline)
+    items = CliItems(cmdline, client.state.path)
+    raw = RawOption(client.state)
     if items.method:
         try:
             if items.method.startswith("!"):
-                await call_builtin(shvclient, config, items)
-            elif items.method == "ls" and not config.raw:
-                await ls_method(shvclient, config, items)
-            elif items.method == "dir" and not config.raw:
-                await dir_method(shvclient, config, items)
+                builtin = Builtins(client.state).get(items.method[1:])
+                if builtin is not None:
+                    await builtin.run(items, client)
+                else:
+                    print(f"No such builtin method '{items.method[1:]}'")
+            elif items.method == "ls" and not raw:
+                await ls_method(client, items)
+            elif items.method == "dir" and not raw:
+                await dir_method(client, items)
             else:
                 try:
                     # To cover case when typing is invalid we allow send valid
                     # CPON and thus we do not pass type hint here.
-                    param = items.param()
+                    param = items.cpon_param()
                 except (ValueError, EOFError):
-                    print(f"Invalid CPON format of parameter: {items.param_raw}")
+                    print(f"Invalid CPON format of parameter: {items.param}")
                 else:
                     print_cpon(
-                        await shvclient.call(
-                            config.shvpath(items.path),
+                        await client.call(
+                            str(items.path),
                             items.method,
                             param,
-                            call_attempts=config.call_attempts,
-                            call_timeout=config.call_timeout,
+                            call_attempts=int(CallAttemptsOption(client.state)),
+                            call_timeout=float(CallTimeoutOption(client.state)),
                         )
                     )
         except TimeoutError:
@@ -133,8 +110,8 @@ async def handle_line(shvclient: SHVClient, config: CliConfig, cmdline: str) -> 
         except RpcError as exc:
             print(f"{type(exc).__name__}: {exc.message}")
     else:
-        newpath = config.sanitpath(config.path / items.path)
-        if await shvclient.path_is_valid(str(newpath)):
-            config.path = newpath
+        newpath = items.path
+        if await client.path_is_valid(str(newpath)):
+            client.state.path = newpath
         else:
             print(f"Invalid path: {newpath}")

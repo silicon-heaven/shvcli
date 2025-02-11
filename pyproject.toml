@@ -24,6 +24,7 @@ dependencies = [
   "prompt_toolkit",
   "pygments",
   "pyxdg",
+  "more-itertools",
 ]
 
 [project.urls]

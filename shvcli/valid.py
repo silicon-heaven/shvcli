@@ -3,40 +3,52 @@
 from prompt_toolkit.document import Document
 from prompt_toolkit.validation import ValidationError, Validator
 
-from . import builtin
-from .client import SHVClient
-from .config import CliConfig
-from .parse import CliFlags, parse_line
+from .builtin import Builtins
+from .client import Client
+from .cliitems import CliItems
+from .options import AutoProbeOption, RawOption
+from .tree import Tree
 
 
 class CliValidator(Validator):
     """Validator for SHVCLI."""
 
-    def __init__(self, shvclient: SHVClient, config: CliConfig) -> None:
+    def __init__(self, client: Client) -> None:
         """Initialize validator and get references to client and config."""
-        self.shvclient = shvclient
-        self.config = config
+        self.client = client
 
     def validate(self, document: Document) -> None:
         """Perform validation."""
-        items = parse_line(document.text)
+        items = CliItems(document.text, self.client.state.path)
 
         # Parameters
-        if CliFlags.COMPLETE_CALL in items.flags:
-            if items.method in {"ls", "dir"} and not self.config.raw:
+        if " " in items.line:
+            if items.method in {"ls", "dir"} and not RawOption(self.client.state):
                 return
-            if builtin.get_builtin(items.method[1:]):
-                # TODO we can add validation to the builtins as well
+            elif items.method[0] == "!" and (
+                builtin := Builtins(self.client.state).get(items.method[1:])
+            ):
+                builtin.validate(items, self.client)
                 return
             # Any other command should have CPON as argument and thus validate
             # it as such.
-            method_desc = self.shvclient.tree.get_method(items.path, items.method)
+            method_desc = Tree(self.client.state).get_method(items.path, items.method)
             try:
-                items.param(method_desc.param if method_desc else "")
+                items.cpon_param(method_desc.param if method_desc else "")
             except (ValueError, EOFError) as exc:
                 raise ValidationError(message=str(exc)) from exc
 
     async def validate_async(self, document: Document) -> None:
         """Validate in asyncio."""
-        # TODO we can optionally also probe paths to validate paths and methods
+        if AutoProbeOption(self.client.state):
+            items = CliItems(document.text, self.client.state.path)
+            # Parameters
+            if " " in items.line:
+                if items.method[0] == "!" and (
+                    builtin := Builtins(self.client.state).get(items.method[1:])
+                ):
+                    await builtin.validate_async(items, self.client)
+
+        # Note: We rely on the completion to probe the SHV tree for us.
+
         await super().validate_async(document)

@@ -1,132 +1,86 @@
 """Builtin methods glue code so they can be defined separatelly."""
 
+from __future__ import annotations
+
+import abc
 import collections.abc
-import dataclasses
+import inspect
 import typing
 
 from prompt_toolkit.completion import Completion
 
-from .client import SHVClient
-from .config import CliConfig
-from .parse import CliItems
-
-_T_METHOD = typing.Callable[
-    [SHVClient, CliConfig, CliItems], typing.Awaitable[None] | None
-]
-_T_XMETHOD = typing.Callable[
-    [SHVClient, CliConfig, CliItems, int | None], typing.Awaitable[None]
-]
+from .client import Client
+from .cliitems import CliItems
+from .state import State, StateVar
 
 
-@dataclasses.dataclass
-class Argument:
-    """Definition of argument for builtin method."""
+class Builtin(abc.ABC):
+    """The single builtin definition."""
 
-    description: str
-    completion: typing.Callable[
-        [SHVClient, CliConfig, CliItems], collections.abc.Iterable[Completion]
-    ]
-    autoprobe: bool = False
+    builtins: typing.Final[list[type[Builtin]]] = []
 
+    def __init_subclass__(cls, *args: typing.Any, **kwargs: typing.Any) -> None:  # noqa: ANN401
+        super().__init_subclass__(*args, **kwargs)
+        Builtin.builtins.append(cls)
 
-@dataclasses.dataclass
-class Method:
-    """Builtin method definition."""
+    def __init__(self, builtins: Builtins, state: State) -> None:
+        self.state = state
 
-    func: _T_METHOD
-    name: str
-    aliases: collections.abc.Set[str]
-    argument: Argument | None
-    description: str | None = None
+    @property
+    @abc.abstractmethod
+    def description(self) -> tuple[str, str]:
+        """The provider of the description of this builtin.
 
+        :return: The first string is description of arguments expected by
+          builtin and the second one is the builtin description.
+        """
 
-@dataclasses.dataclass
-class XMethod:
-    """Definition of builtin method with numeric suffix."""
+    def completion(  # noqa: PLR6301
+        self, items: CliItems, client: Client
+    ) -> collections.abc.Iterable[Completion]:
+        """Parameter completion for this builtin."""
+        return tuple()
 
-    func: _T_XMETHOD
-    name: str
-    argument: Argument | None
-    description: str | None = None
+    async def completion_async(  # noqa: PLR6301
+        self, items: CliItems, client: Client
+    ) -> collections.abc.AsyncGenerator[Completion, None]:
+        """Asynchronous parameter completion for this builtin.
 
+        This is used only if :class:`AutoProbeOption` is enabled.
 
-METHODS: dict[str, Method | XMethod] = {}
+        It is common that this only fetches the required data with client and
+        the completion is performed in :meth:`completion` only.
+        """
+        return
+        yield  # type: ignore
 
-
-def builtin(
-    name: str | None = None,
-    aliases: collections.abc.Set[str] | None = None,
-    argument: Argument | None = None,
-    hidden: bool = False,
-) -> typing.Callable[[_T_METHOD], _T_METHOD]:
-    """Decorate function to register it as builtin method."""
-
-    def decorator(func: _T_METHOD) -> _T_METHOD:
-        m = Method(
-            func,
-            name or func.__name__,
-            aliases if aliases else frozenset(),
-            argument,
-            None if hidden else func.__doc__,
-        )
-        METHODS[m.name] = m
-        for alias in m.aliases:
-            METHODS[alias] = m
-        return func
-
-    return decorator
-
-
-def xbuiltin(
-    name: str | None = None,
-    argument: Argument | None = None,
-) -> typing.Callable[[_T_XMETHOD], _T_XMETHOD]:
-    """Decorate function to register it as builtin method with X numeric suffix."""
-
-    def decorator(func: _T_XMETHOD) -> _T_XMETHOD:
-        m = XMethod(func, name or func.__name__, argument, func.__doc__)
-        METHODS[m.name] = m
-        return func
-
-    return decorator
-
-
-def get_builtin(name: str) -> Method | XMethod | None:
-    """Provide getter for builtin method description for given name."""
-    res = METHODS.get(name)
-    if res is None:
-        try:
-            return next(
-                x
-                for x in METHODS.values()
-                if isinstance(x, XMethod) and name.startswith(x.name)
-            )
-        except StopIteration:
-            pass
-    return res
-
-
-async def call_builtin(
-    shvclient: SHVClient, config: CliConfig, items: CliItems
-) -> None:
-    """Perform call of builtin method."""
-    method = items.method[1:]
-    m = get_builtin(method)
-    if m is None:
-        print(f"Invalid internal method: {items.method}")
+    def validate(self, items: CliItems, client: Client) -> None:  # noqa: PLR6301
+        """Validate the parameter for this builtin."""
         return
 
-    if isinstance(m, Method):
-        res = m.func(shvclient, config, items)
-        if isinstance(res, collections.abc.Awaitable):
-            await res
+    async def validate_async(self, items: CliItems, client: Client) -> None:  # noqa: PLR6301
+        """Asynchronously validate the parameter for this builtin.
+
+        This is used only if :class:`AutoProbeOption` is enabled.
+
+        It is common that this only fetches the required data with client and
+        the validation is performed in :meth:`validate` only. SHVCLI also
+        always uses completion and validation together and because completion
+        happens alongside with validation it is rather common to do this
+        probing in the :meth:`completion_async` only.
+        """
         return
 
-    typing.assert_type(m, XMethod)
-    strnum = items.method[len(m.name) + 1 :]
-    try:
-        num = int(strnum) if strnum else None
-    except ValueError:
-        print("Invalid value for 'X'. Expected valid number.")
-    else:
-        await m.func(shvclient, config, items, num)
+    @abc.abstractmethod
+    async def run(self, items: CliItems, client: Client) -> None:
+        """Run the builtin."""
+
+
+class Builtins(StateVar, dict[str, Builtin]):
+    """All initialized builtins."""
+
+    def __init__(self, state: State) -> None:
+        super().__init__(state)
+        for builtin in Builtin.builtins:
+            if not inspect.isabstract(builtin):
+                builtin(self, state)

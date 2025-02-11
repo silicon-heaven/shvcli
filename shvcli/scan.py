@@ -6,25 +6,26 @@ directly when configured.
 
 from prompt_toolkit.shortcuts import ProgressBar, ProgressBarCounter
 
-from .client import SHVClient
+from .client import Client
+from .path import SHVPath
 
 
-async def scan_nodes(shvclient: SHVClient, path: str, depth: int = 3) -> None:
+async def scan_nodes(client: Client, path: SHVPath, depth: int = 3) -> None:
     """Perform scan with maximum depth.
 
     Scan uses 'ls' and 'dir' to fetch info about all nodes.
     """
-    depth += path.count("/")  # Extend depth to the depth in path
+    depth += len(path.parts)  # Extend depth to the depth in path
     pths = [path]
     with ProgressBar() as pb:
         pbcnt: ProgressBarCounter = pb()
         pbcnt.total = 1
         while pths:
             pth = pths.pop()
-            pbcnt.label = pth
-            node = await shvclient.probe(pth)
-            if node is not None and (pth.count("/") + 1 if pth else 0) < depth:
+            pbcnt.label = str(pth)
+            node = await client.probe(pth)
+            if node is not None and (len(pth.parts) + 1 if pth else 0) < depth:
                 assert node.nodes is not None
-                pths.extend(f"{pth}{'/' if pth else ''}{name}" for name in node.nodes)
+                pths.extend(pth / name for name in node.nodes)
                 pbcnt.total += len(node.nodes)
             pbcnt.item_completed()

@@ -1,15 +1,15 @@
 """Special handling of ls and dir methods."""
 
 import itertools
-import pathlib
 import string
 
 from shv import Cpon, RpcError, RpcMethodDesc, RpcMethodFlags
 
-from .client import Node, SHVClient
-from .config import CliConfig
-from .parse import CliItems
-from .tools import cpon_ftext, print_flist, print_row
+from .client import Client, Node
+from .cliitems import CliItems
+from .options import AutoGetOption, AutoGetTimeoutOption
+from .tools.print import cpon_ftext, print_flist, print_row
+from .tree import Tree
 
 
 def ls_node_format(
@@ -65,17 +65,17 @@ def dir_signal_format(method: RpcMethodDesc, signal: str) -> tuple[str, str]:
     )
 
 
-async def ls_method(shvclient: SHVClient, config: CliConfig, items: CliItems) -> None:
+async def ls_method(client: Client, items: CliItems) -> None:
     """SHV ls method that is just smarter than regular call."""
-    shvpath = items.interpret_param_path(config)
-    await shvclient.ls(shvpath)
-    node = shvclient.tree.get_node(shvpath)
+    path = items.path_param
+    await client.ls(str(path))
+    node = Tree(client.state).get_node(path)
     assert node is not None
-    if config.autoget:
+    if AutoGetOption(client.state):
         for nn, nv in dict(node).items():
             if not nv.methods_probed:
                 try:
-                    await shvclient.dir(str(pathlib.PurePosixPath(shvpath) / nn))
+                    await client.dir(str(path / nn))
                 except RpcError:
                     pass
         if any("get" in nv.methods for nv in node.values()):
@@ -84,11 +84,11 @@ async def ls_method(shvclient: SHVClient, config: CliConfig, items: CliItems) ->
                 n = [("", " " * (w - len(nn))), ls_node_format(nn, nv)]
                 if "get" in nv.methods:
                     try:
-                        resp = await shvclient.call(
-                            str(pathlib.PurePosixPath(shvpath) / nn),
+                        resp = await client.call(
+                            str(path / nn),
                             "get",
                             call_attempts=1,
-                            call_timeout=config.autoget_timeout,
+                            call_timeout=float(AutoGetTimeoutOption(client.state)),
                         )
                     except (RpcError, TimeoutError):
                         pass
@@ -104,11 +104,11 @@ async def ls_method(shvclient: SHVClient, config: CliConfig, items: CliItems) ->
     print_flist(ls_node_format(nn, nv) for nn, nv in node.items())
 
 
-async def dir_method(shvclient: SHVClient, config: CliConfig, items: CliItems) -> None:
+async def dir_method(client: Client, items: CliItems) -> None:
     """SHV dir method that is just smarter than regular call."""
-    shvpath = items.interpret_param_path(config)
-    dirr = await shvclient.dir(shvpath)
-    if config.autoget and any(_use_autoget(d) for d in dirr):
+    path = items.path_param
+    dirr = await client.dir(str(path))
+    if AutoGetOption(client.state) and any(_use_autoget(d) for d in dirr):
         w = max(len(d.name) for d in dirr)
         for d in dirr:
             if RpcMethodFlags.NOT_CALLABLE in d.flags:
@@ -116,11 +116,11 @@ async def dir_method(shvclient: SHVClient, config: CliConfig, items: CliItems) -
             n = [("", " " * (w - len(d.name))), dir_method_format(d)]
             if _use_autoget(d):
                 try:
-                    resp = await shvclient.call(
-                        shvpath,
+                    resp = await client.call(
+                        str(path),
                         d.name,
                         call_attempts=1,
-                        call_timeout=config.autoget_timeout,
+                        call_timeout=float(AutoGetTimeoutOption(client.state)),
                     )
                 except (RpcError, TimeoutError):
                     pass

@@ -1,4 +1,4 @@
-"""Various tools used in the code."""
+"""Tools for consistent printing of more complex data."""
 
 import collections.abc
 import itertools
@@ -6,37 +6,13 @@ import os
 import textwrap
 import typing
 
+import more_itertools
 import shv
 from prompt_toolkit import print_formatted_text
 from prompt_toolkit.document import Document
 from prompt_toolkit.formatted_text import FormattedText
 from prompt_toolkit.lexers import PygmentsLexer
 from pygments.lexers.data import JsonLexer
-
-T = typing.TypeVar("T")
-
-
-def lookahead(iterin: typing.Iterable[T]) -> typing.Iterator[tuple[T, bool]]:
-    """Itearte and tell if there is more data comming."""
-    it = iter(iterin)
-    try:
-        prev = next(it)
-    except StopIteration:
-        return
-    for v in it:
-        yield prev, True
-        prev = v
-    yield prev, False
-
-
-def intersperse(what: T, iterin: typing.Iterable[T]) -> typing.Iterator[T]:
-    """Itersperse one value between values from iteartor."""
-    first = True
-    for v in iterin:
-        if not first:
-            yield what
-        yield v
-        first = False
 
 
 def print_ftext(
@@ -94,6 +70,17 @@ def print_row(
     print_ftext(generate())
 
 
+def print_keyval(
+    pairs: collections.abc.Iterable[tuple[tuple[str, str], tuple[str, str]]]
+    | collections.abc.Iterator[tuple[tuple[str, str], tuple[str, str]]],
+) -> None:
+    """Print series of keys and values to the columns."""
+    pairs, pairs_copy = itertools.tee(pairs)
+    w = max(len(v[0][1]) for v in pairs)
+    for v in pairs_copy:
+        print_row([(v[0][0], (" " * (w - len(v[0][1]))) + v[0][1] + "  "), v[1]])
+
+
 def print_block(text: str, indent: int = 0) -> None:
     """Print text with given indent from left side.
 
@@ -112,10 +99,10 @@ def cpon_ftext(cpon: str) -> collections.abc.Iterator[tuple[str, str]]:
     """Add style to the the CPON."""
     lexer = PygmentsLexer(JsonLexer)  # TODO implement CPON lexer
     ltext = lexer.lex_document(Document(cpon))
-    for i, notlast in lookahead(range(cpon.count("\n") + 1)):
+    for _, is_last, i in more_itertools.mark_ends(range(cpon.count("\n") + 1)):
         for f in ltext(i):
             yield f[0], f[1]
-        if notlast:
+        if not is_last:
             yield "", "\n"
 
 

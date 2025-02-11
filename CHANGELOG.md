@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - Validation of parameter based on the RPC Type
+- Dependency on `more-itertools`
+
+### Changed
+- Configuration file format from INI to TOML and section `config` is now called
+  `option`.
+- Automatic node probing now happens in more situations and such as for
+  `!subscribe` or `!tree` builtins.
+
+### Removed
+- Configuration option `config.cache`. The cache is not always enabled.
 
 
 ## [0.6.2] - 2025-02-04

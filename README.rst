@@ -60,16 +60,16 @@ An example of usage:
 Configuration file
 ------------------
 
-Tool reads configuration from files ``/etc/shvcli.ini`` and ``~/.shvcli.ini``.
-They are in INI file format and the following sections are supported:
+Tool reads configuration from files ``/etc/shvcli.toml`` and ``~/.shvcli.toml``.
+They are in TOML file format and the following sections are supported:
 
 **hosts**: That provides mapping from some name to RPC URL.
 
 **hosts-shell**: That is same as **hosts** with exception that URL is passed
 through your local Shell to expand any variables or command substitutions.
 
-**config**: That allows you to set some initial configuration that can be also
-switched in runtime. The following options are available:
+**option**: That allows you to set initial setting for runtime options. The
+following options are available without any plugins:
 
 * **vimode**: If Vi input mode should be used for command line input. The
   default is ``false``.
@@ -92,16 +92,12 @@ switched in runtime. The following options are available:
   be also overwhelming. The default is ``false``. It is beneficial to disable
   the **autobrobe** once you enable debug because otherwise output on CLI will
   be mangled on completion.
-* **cache**: Controls if cache is preserved between invocations. Cache is
-  separated based on the connection URL and stored in files in
-  ``$XDG_CACHE_HOME/shvcli``. The default is ``true``.
 * **call_attempts**: Number of attempts before method call is abandoned and
   timeout is reported. This makes the total time multiple of **call_timeout**.
 * **call_timeout**: Timeout in seconds before call attempt is abandoned. Based
   on the **call_attempts** call is attempted again or timeout is reported.
 * **autoget_timeout**: Timeout in seconds before call that is part of autoget
   functionality.
-
 
 Example configuration file:
 

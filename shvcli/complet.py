@@ -6,73 +6,79 @@ import typing
 from prompt_toolkit.completion import CompleteEvent, Completer, Completion
 from prompt_toolkit.document import Document
 
-from . import builtin
-from .client import SHVClient
-from .complet_tools import comp_from, comp_path, comp_path_identify
-from .config import CliConfig
-from .parse import CliFlags, parse_line
+from .builtin import Builtins
+from .client import Client
+from .cliitems import CliItems
+from .options import AutoProbeOption, RawOption
+from .tools.complet import comp_from, comp_path
+from .tree import Tree
 
 
 class CliCompleter(Completer):
     """Completer for SHVCLI based on discovered tree."""
 
-    def __init__(self, shvclient: SHVClient, config: CliConfig) -> None:
+    def __init__(self, client: Client) -> None:
         """Initialize completer and get references to client and config."""
-        self.shvclient = shvclient
-        self.config = config
+        self.client = client
 
     def get_completions(
         self, document: Document, complete_event: CompleteEvent
     ) -> collections.abc.Iterable[Completion]:
         """Implement completions."""
-        items = parse_line(document.text)
+        items = CliItems(document.text, self.client.state.path)
 
         # Parameters
-        if CliFlags.COMPLETE_CALL in items.flags:
-            if items.method in {"ls", "dir"} and not self.config.raw:
-                yield from comp_path(self.shvclient, self.config, items)
-            elif bmethod := builtin.get_builtin(items.method[1:]):
-                if bmethod.argument:
-                    yield from bmethod.argument.completion(
-                        self.shvclient, self.config, items
-                    )
+        if " " in items.line:
+            if items.method in {"ls", "dir"} and not RawOption(self.client.state):
+                yield from comp_path(
+                    items.param, items.path_prefix, Tree(self.client.state), ""
+                )
+            elif builtin := Builtins(self.client.state).get(items.method[1:]):
+                yield from builtin.completion(items, self.client)
             return  # Otherwise nothing to complete because we can't complete CPON
 
         # Paths
-        if CliFlags.HAS_COLON not in items.flags:
-            yield from comp_path(self.shvclient, self.config, items)
-            if items.path:
-                return  # Completing only path now so do not follow with methods
+        if ":" not in items.ri:
+            yield from comp_path(items.ri, items.path_prefix, Tree(self.client.state))
 
         # Methods
-        node = self.shvclient.tree.get_node(self.config.shvpath(items.path))
-        yield from comp_from(
-            items.method,
-            ["ls", "dir"] if node is None else node.methods,
-            (f"!{n}" for n in builtin.METHODS),
-        )
+        if ":" in items.ri or "/" not in items.ri:
+            node = Tree(self.client.state).get_node(items.path)
+            yield from comp_from(
+                items.method,
+                ["ls", "dir"] if node is None else node.methods,
+                (f"!{n}" for n in Builtins(self.client.state)),
+            )
 
     async def get_completions_async(
         self, document: Document, complete_event: CompleteEvent
     ) -> typing.AsyncGenerator[Completion, None]:
         """Completions as async generator."""
-        items = parse_line(document.text)
-        if self.config.autoprobe and (
-            CliFlags.COMPLETE_CALL not in items.flags
-            or items.method in {"ls", "dir"}
-            or (
-                items.method
-                and items.method[0] == "!"
-                and (bmethod := builtin.get_builtin(items.method[1:])) is not None
-                and bmethod.argument
-                and bmethod.argument.autoprobe
-            )
-        ):
-            if CliFlags.HAS_COLON in items.flags:
-                await self.shvclient.probe(self.config.shvpath(items.path))
-            else:
-                pth, _ = comp_path_identify(self.config, items)
-                await self.shvclient.probe(str(pth)[1:])
+        items = CliItems(document.text, self.client.state.path)
+
+        if AutoProbeOption(self.client.state):
+            # Parameter
+            if " " in items.line:
+                if items.method[0] == "!" and (
+                    builtin := Builtins(self.client.state).get(items.method[1:])
+                ):
+                    async for res in builtin.completion_async(items, self.client):
+                        yield res
+                elif not RawOption(self.client.state) and items.method in {"ls", "dir"}:
+                    # The parameter of ls and dir is also
+                    await self.client.probe(
+                        items.path_param
+                        if items.param.endswith("/")
+                        else items.path_param.parent
+                    )
+
+            # Path
+            elif AutoProbeOption(self.client.state):
+                await self.client.probe(
+                    items.path
+                    if ":" in items.ri or items.ri.endswith("/")
+                    else items.path.parent
+                )
 
         async for res in super().get_completions_async(document, complete_event):
             yield res
