@@ -29,20 +29,36 @@
         pypkgs);
     requires = pypi2nix pyproject.project.dependencies;
 
-    package = {python3Packages}:
-      python3Packages.buildPythonApplication {
+    pypackage = {
+      buildPythonPackage,
+      pythonPackages,
+      python,
+      setuptools,
+      runCommandLocal,
+    }:
+      buildPythonPackage {
         pname = pyproject.project.name;
         inherit version src;
         pyproject = true;
-        build-system = [python3Packages.setuptools];
-        propagatedBuildInputs = requires python3Packages;
+        build-system = [setuptools];
+        propagatedBuildInputs = requires pythonPackages;
+        pythonImportsCheck = ["shvcli"];
         meta.mainProgram = "shvcli";
+
+        passthru.withPlugins = plugins:
+          runCommandLocal "shvcli-${version}" {
+            env = python.buildEnv.override {extraLibs = [pythonPackages.shvcli] ++ plugins;};
+          } "mkdir -p $out/bin && ln -sf $env/bin/shvcli $out/bin/shvcli";
       };
   in
     {
       overlays = {
-        noInherit = final: _: {
-          "${name}" = final.callPackage package {};
+        pythonPackagesExtension = final: _: {
+          "${name}" = final.callPackage pypackage {};
+        };
+        noInherit = final: prev: {
+          pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [self.overlays.pythonPackagesExtension];
+          "${name}" = final.python3Packages.toPythonApplication final.python3Packages.shvcli;
         };
         default = composeManyExtensions [
           pyshv.overlays.default

@@ -162,3 +162,10 @@ the fullest content.
 Their parameter is also handled in a special way. It is considered to be
 additional path suffix unless it is a valid CPON. This is allowed to match the
 common shells.
+
+
+Plugins
+-------
+
+The support for external plugins is provided. These plugins are discovered using
+Python package metadata using the entry point ``shvcli.plugins``.

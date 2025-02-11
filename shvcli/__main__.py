@@ -7,12 +7,14 @@ from .args import args_apply, args_parse
 from .cli import run
 from .client import Client
 from .config import load_config
+from .plugins import load_plugins
 from .state import State
 from .url import Url
 
 
 def main() -> None:
     """Application's entrypoint."""
+    load_plugins()
     argsgens, args = args_parse()
     state = State()
     load_config(args.config, state)
