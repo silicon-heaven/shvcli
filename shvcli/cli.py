@@ -3,6 +3,7 @@
 import asyncio
 import contextlib
 import pathlib
+import signal
 
 from prompt_toolkit import PromptSession
 from prompt_toolkit.history import FileHistory
@@ -41,6 +42,8 @@ async def run(client: Client) -> None:
 
 async def cliapp(client: Client) -> None:
     """CLI application."""
+    loop = asyncio.get_running_loop()
+
     histfile = pathlib.Path.home() / ".shvcli.history"
     if not histfile.exists():
         with histfile.open("w") as _:
@@ -51,25 +54,37 @@ async def cliapp(client: Client) -> None:
         completer=CliCompleter(client),
         validator=CliValidator(client),
     )
+
+    with contextlib.suppress(EOFError):
+        while client.client.connected:
+            cmdline = await read_line(client, session)
+            task = asyncio.create_task(handle_line(client, cmdline))
+            loop.add_signal_handler(signal.SIGINT, lambda x: x.cancel(), task)
+            with contextlib.suppress(asyncio.CancelledError):
+                await task
+
+
+async def read_line(client: Client, session: PromptSession) -> str:
+    """Read the single command line prompt."""
+    prompt_path = (
+        "ansibrightred"
+        if Tree(client.state).get_node(client.state.path) is None
+        else "ansibrightblue",
+        str(client.state.path),
+    )
     while True:
         try:
-            prompt_path = (
-                "ansibrightred"
-                if Tree(client.state).get_node(client.state.path) is None
-                else "ansibrightblue",
-                str(client.state.path),
-            )
-            try:
-                with patch_stdout():
-                    result = await session.prompt_async(
-                        [prompt_path, ("", "> ")],
-                        vi_mode=bool(ViModeOption(client.state)),
-                    )
-            except EOFError:
-                return
-            await handle_line(client, result)
+            with patch_stdout():
+                res = await session.prompt_async(
+                    [prompt_path, ("", "> ")],
+                    vi_mode=bool(ViModeOption(client.state)),
+                )
         except KeyboardInterrupt:
             continue
+        else:
+            break
+    assert isinstance(res, str)
+    return res
 
 
 async def handle_line(client: Client, cmdline: str) -> None:
@@ -107,6 +122,9 @@ async def handle_line(client: Client, cmdline: str) -> None:
                     )
         except TimeoutError:
             print("Call timed out.")
+        except asyncio.CancelledError as exc:
+            print("Call canceled")
+            raise exc
         except RpcError as exc:
             print(f"{type(exc).__name__}: {exc.message}")
     else:
