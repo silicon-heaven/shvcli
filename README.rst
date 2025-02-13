@@ -151,6 +151,15 @@ disable ``raw`` you use ``noraw``). You can also add ``=true`` or ``=false``.
 The equal sign is also used with integer and floating point options. Without any
 configuration option it simply prints the current configuration.
 
+**upload**: provides a way to copy local file to the RPC File node. The
+parameter must be path to the local file to be uploaded.
+
+**download**: provides a way to copy RPC File node data to local file. The
+parameter must be path to the local file where data will be stored.
+
+**verify**: provides a way to verify RPC File node against local file. The
+parameter must be path to the local file used for the verification.
+
 
 Special methods ``ls`` and ``dir``
 ----------------------------------
