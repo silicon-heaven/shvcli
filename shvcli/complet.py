@@ -1,6 +1,7 @@
 """Completion for CLI."""
 
 import collections.abc
+import contextlib
 import typing
 
 from prompt_toolkit.completion import CompleteEvent, Completer, Completion
@@ -66,11 +67,12 @@ class CliCompleter(Completer):
                         yield res
                 elif not RawOption(self.client.state) and items.method in {"ls", "dir"}:
                     # The parameter of ls and dir is also
-                    await self.client.probe(
-                        items.path_param
-                        if items.param.endswith("/")
-                        else items.path_param.parent
-                    )
+                    with contextlib.suppress(ValueError):
+                        await self.client.probe(
+                            items.path_param
+                            if items.param.endswith("/")
+                            else items.path_param.parent
+                        )
 
             # Path
             elif AutoProbeOption(self.client.state):
