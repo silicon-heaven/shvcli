@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `option`.
 - Automatic node probing now happens in more situations and such as for
   `!subscribe` or `!tree` builtins.
+- Completion now uses multiple columns.
 
 ### Removed
 - Configuration option `config.cache`. The cache is not always enabled.

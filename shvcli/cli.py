@@ -11,6 +11,7 @@ from prompt_toolkit.history import FileHistory
 from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.key_binding.key_processor import KeyPressEvent
 from prompt_toolkit.patch_stdout import patch_stdout
+from prompt_toolkit.shortcuts import CompleteStyle
 from shv import RpcError
 
 from .builtin import Builtins
@@ -61,6 +62,7 @@ async def cliapp(client: Client) -> None:
         event.app.current_buffer.validate_and_handle()
 
     session: PromptSession = PromptSession(
+        complete_style=CompleteStyle.MULTI_COLUMN,
         history=FileHistory(str(histfile)),
         completer=CliCompleter(client),
         validator=CliValidator(client),
