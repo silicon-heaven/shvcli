@@ -38,7 +38,7 @@ class SHVPath:
     def __init__(self, *pathsegments: str | os.PathLike) -> None:
         parts: list[str] = []
         for segment in itertools.chain.from_iterable(
-            os.fspath(pth).split("/") for pth in pathsegments
+            os.fspath(pth).split("/") for pth in pathsegments if pth
         ):
             if any(c in segment for c in string.whitespace):
                 raise ValueError("SHV path can't contain white space characters")
