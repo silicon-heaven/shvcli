@@ -60,7 +60,7 @@ class CliCompleter(Completer):
         if AutoProbeOption(self.client.state):
             # Parameter
             if " " in items.line:
-                if items.method[0] == "!" and (
+                if items.method.startswith("!") and (
                     builtin := Builtins(self.client.state).get(items.method[1:])
                 ):
                     async for res in builtin.completion_async(items, self.client):

@@ -7,7 +7,7 @@ from .builtin import Builtins
 from .client import Client
 from .cliitems import CliItems
 from .options import AutoProbeOption, RawOption
-from .tree import Tree
+from .tree import Node, Tree
 
 
 class CliValidator(Validator):
@@ -23,20 +23,44 @@ class CliValidator(Validator):
 
         # Parameters
         if " " in items.line:
-            if items.method in {"ls", "dir"} and not RawOption(self.client.state):
+            method = items.method
+            if method in {"ls", "dir"} and not RawOption(self.client.state):
                 return
-            elif items.method[0] == "!" and (
-                builtin := Builtins(self.client.state).get(items.method[1:])
+            elif method.startswith("!") and (
+                builtin := Builtins(self.client.state).get(method[1:])
             ):
                 builtin.validate(items, self.client)
                 return
-            # Any other command should have CPON as argument and thus validate
-            # it as such.
-            method_desc = Tree(self.client.state).get_method(items.path, items.method)
+            elif method:
+                # Any other command should have CPON as argument and thus validate
+                # it as such.
+                method_desc = Tree(self.client.state).get_method(items.path, method)
+                try:
+                    items.cpon_param(method_desc.param if method_desc else "")
+                except (ValueError, EOFError) as exc:
+                    raise ValidationError(message=str(exc)) from exc
+            else:
+                raise ValidationError(message="No parameter expected")
+
+        # RI
+        else:
             try:
-                items.cpon_param(method_desc.param if method_desc else "")
-            except (ValueError, EOFError) as exc:
+                path = items.path
+            except ValueError as exc:
                 raise ValidationError(message=str(exc)) from exc
+            node: Node = Tree(self.client.state)
+            for n in path.parts:
+                if n not in node:
+                    if node.nodes_probed:
+                        raise ValidationError(message="No such path")
+                    return
+                node = node[n]
+            method = items.method
+            if method.startswith("!"):
+                if method[1:] not in Builtins(self.client.state):
+                    raise ValidationError(message="No such builtin method")
+            elif method and node.methods_probed and method not in node.methods:
+                raise ValidationError(message="No such method")
 
     async def validate_async(self, document: Document) -> None:
         """Validate in asyncio."""
@@ -44,7 +68,7 @@ class CliValidator(Validator):
             items = CliItems(document.text, self.client.state.path)
             # Parameters
             if " " in items.line:
-                if items.method[0] == "!" and (
+                if items.method.startswith("!") and (
                     builtin := Builtins(self.client.state).get(items.method[1:])
                 ):
                     await builtin.validate_async(items, self.client)
