@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Validation of parameter based on the RPC Type
 - Dependency on `more-itertools`
+- Ctrl+o now forces line submission even when deemed as invalid
 
 ### Changed
 - Configuration file format from INI to TOML and section `config` is now called

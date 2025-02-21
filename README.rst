@@ -56,6 +56,11 @@ An example of usage:
    .app> /:
    >
 
+.. TIP::
+   The validation that is performed by SHVCLI is best effort and sometimes you
+   might need to submit call that is considered invalid by SHVCLI. For that
+   reason you can use `Ctrl+o` shortcut instead of pressing enter key.
+
 
 Configuration file
 ------------------

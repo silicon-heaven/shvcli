@@ -6,7 +6,10 @@ import pathlib
 import signal
 
 from prompt_toolkit import PromptSession
+from prompt_toolkit.buffer import ValidationState
 from prompt_toolkit.history import FileHistory
+from prompt_toolkit.key_binding import KeyBindings
+from prompt_toolkit.key_binding.key_processor import KeyPressEvent
 from prompt_toolkit.patch_stdout import patch_stdout
 from shv import RpcError
 
@@ -49,10 +52,19 @@ async def cliapp(client: Client) -> None:
         with histfile.open("w") as _:
             pass
 
+    bindings = KeyBindings()
+
+    @bindings.add("c-o")
+    def __s_enter(event: KeyPressEvent) -> None:
+        # TODO this should be enabled in Vi mode only in normal mode
+        event.app.current_buffer.validation_state = ValidationState.VALID
+        event.app.current_buffer.validate_and_handle()
+
     session: PromptSession = PromptSession(
         history=FileHistory(str(histfile)),
         completer=CliCompleter(client),
         validator=CliValidator(client),
+        key_bindings=bindings,
     )
 
     with contextlib.suppress(EOFError):
