@@ -59,7 +59,7 @@ class Option(abc.ABC, StateVar):
         self, value: str, items: CliItems
     ) -> collections.abc.Iterable[Completion]:
         """Parameter completion for this option value."""
-        raise StopIteration
+        yield from ()
 
     def validate(self, value: str, items: CliItems) -> None:  # noqa: PLR6301
         """Validate the option value."""
