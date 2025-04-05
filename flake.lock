@@ -34,13 +34,32 @@
         "type": "indirect"
       }
     },
+    "flakepy": {
+      "inputs": {
+        "flake-utils": "flake-utils_2",
+        "nixpkgs": "nixpkgs"
+      },
+      "locked": {
+        "lastModified": 1743876030,
+        "narHash": "sha256-IeHPjCWjHRvDH7ttVSaHMWRMqnKZsPrFAqQXySA2kcI=",
+        "owner": "Cynerd",
+        "repo": "flakepy",
+        "rev": "41b873087f6d8e59b6f6361775cf5436aec3eeb8",
+        "type": "gitlab"
+      },
+      "original": {
+        "owner": "Cynerd",
+        "repo": "flakepy",
+        "type": "gitlab"
+      }
+    },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1739019272,
-        "narHash": "sha256-7Fu7oazPoYCbDzb9k8D/DdbKrC3aU1zlnc39Y8jy/s8=",
+        "lastModified": 1743568003,
+        "narHash": "sha256-ZID5T65E8ruHqWRcdvZLsczWDOAWIE7om+vQOREwiX0=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "fa35a3c8e17a3de613240fea68f876e5b4896aec",
+        "rev": "b7ba7f9f45c5cd0d8625e9e217c28f8eb6a19a76",
         "type": "github"
       },
       "original": {
@@ -50,11 +69,11 @@
     },
     "nixpkgs_2": {
       "locked": {
-        "lastModified": 1738644632,
-        "narHash": "sha256-DyvJjOOGmTSkkEfHq0oWkwtZOgejYIB5S865wmf/qos=",
+        "lastModified": 1743689281,
+        "narHash": "sha256-y7Hg5lwWhEOgflEHRfzSH96BOt26LaYfrYWzZ+VoVdg=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "95ea544c84ebed84a31896b0ecea2570e5e0e236",
+        "rev": "2bfc080955153be0be56724be6fa5477b4eefabb",
         "type": "github"
       },
       "original": {
@@ -64,15 +83,16 @@
     },
     "pyshv": {
       "inputs": {
-        "flake-utils": "flake-utils_2",
+        "flake-utils": "flake-utils",
+        "flakepy": "flakepy",
         "nixpkgs": "nixpkgs_2"
       },
       "locked": {
-        "lastModified": 1738828684,
-        "narHash": "sha256-3uRWnE8FRiHl4FNRNU1PRC0hL41NqiSpJ/SfFoYfhew=",
+        "lastModified": 1743880565,
+        "narHash": "sha256-j4bXMnCr3pljon5JLpbnkZ4X/mu/VKdxHvp6OkPy6/s=",
         "owner": "silicon-heaven",
         "repo": "pyshv",
-        "rev": "9a762f7654471a5cd42e62a3c8d7c3e9bae2a31c",
+        "rev": "89ade059d35bb46c33171a2948bc393d8cde48d2",
         "type": "gitlab"
       },
       "original": {
@@ -83,8 +103,6 @@
     },
     "root": {
       "inputs": {
-        "flake-utils": "flake-utils",
-        "nixpkgs": "nixpkgs",
         "pyshv": "pyshv"
       }
     },
