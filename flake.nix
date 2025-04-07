@@ -12,19 +12,19 @@
 
     pyproject = flakepy.lib.pyproject ./. {};
 
-    pypackage = {
-      python,
+    pypackage = pyproject.package ({
       runCommandLocal,
-    }:
-      pyproject.buildPackage python {
-        pythonImportsCheck = ["shvcli"];
-        meta.mainProgram = "shvcli";
+      python,
+      shvcli,
+    }: {
+      pythonImportsCheck = ["shvcli"];
+      meta.mainProgram = "shvcli";
 
-        passthru.withPlugins = plugins:
-          runCommandLocal "shvcli-${pyproject.version}" {
-            env = python.buildEnv.override {extraLibs = [python.pkgs.shvcli] ++ plugins;};
-          } "mkdir -p $out/bin && ln -sf $env/bin/shvcli $out/bin/shvcli";
-      };
+      passthru.withPlugins = plugins:
+        runCommandLocal "shvcli-${pyproject.version}" {
+          env = python.buildEnv.override {extraLibs = [shvcli] ++ plugins;};
+        } "mkdir -p $out/bin && ln -sf $env/bin/shvcli $out/bin/shvcli";
+    });
   in
     {
       overlays = {
