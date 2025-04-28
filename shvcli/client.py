@@ -5,10 +5,9 @@ from __future__ import annotations
 import typing
 
 from shv import (
+    RpcDir,
     RpcError,
     RpcMessage,
-    RpcMethodDesc,
-    RpcMethodFlags,
     RpcMethodNotFoundError,
     SHVClient,
     SHVType,
@@ -34,7 +33,7 @@ class Client(SHVClient):
 
     async def _message(self, msg: RpcMessage) -> None:
         await super()._message(msg)
-        if msg.is_signal:
+        if msg.type is RpcMessage.Type.SIGNAL:
             Tree(self.state).valid_path(msg.path).methods.setdefault(msg.source, None)
             print_cpon(msg.param, f"{msg.path}:{msg.source}:{msg.signal_name}: ", True)
 
@@ -53,9 +52,9 @@ class Client(SHVClient):
 
         return res
 
-    async def dir(self, path: str, details: bool = False) -> list[RpcMethodDesc]:
+    async def dir(self, path: str, details: bool = False) -> list[RpcDir]:
         """List methods same as in ValueClient but result is being preserved in tree."""
-        res: list[RpcMethodDesc]
+        res: list[RpcDir]
         try:
             res = await super().dir(path, details)
         except RpcError as exc:
@@ -63,7 +62,7 @@ class Client(SHVClient):
             raise exc
         node = Tree(self.state).valid_path(path)
         node.methods = {
-            d.name: d for d in res if RpcMethodFlags.NOT_CALLABLE not in d.flags
+            d.name: d for d in res if RpcDir.Flag.NOT_CALLABLE not in d.flags
         }
         node.methods_probed = True
         return res

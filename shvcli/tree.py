@@ -21,9 +21,9 @@ class Node(collections.abc.Mapping[str, "Node"]):
 
         self.nodes: dict[str, Node] = {}
         """The child nodes of this node."""
-        self.methods: dict[str, shv.RpcMethodDesc | None] = {
-            "ls": shv.RpcMethodDesc.stdls(),
-            "dir": shv.RpcMethodDesc.stddir(),
+        self.methods: dict[str, shv.RpcDir | None] = {
+            "ls": shv.RpcDir.stdls(),
+            "dir": shv.RpcDir.stddir(),
         }
         """The methods discovered to be associated with this method."""
         self.nodes_probed = False
@@ -77,7 +77,7 @@ class Node(collections.abc.Mapping[str, "Node"]):
             node = node[n]
         return node
 
-    def get_method(self, path: SHVPath, method: str) -> shv.RpcMethodDesc | None:
+    def get_method(self, path: SHVPath, method: str) -> shv.RpcDir | None:
         """Get method from given path."""
         if (node := self.get_node(path)) is not None:
             return node.methods.get(method, None)
@@ -106,7 +106,7 @@ class Node(collections.abc.Mapping[str, "Node"]):
             for n, v in data["methods"].items():
                 desc = None
                 with contextlib.suppress(shv.RpcInvalidParamError, ValueError):
-                    desc = shv.RpcMethodDesc.from_shv(v)
+                    desc = shv.RpcDir.from_shv(v)
                 self.methods[n] = desc
         self.nodes_probed = bool(data["nodes_probed"])
         self.methods_probed = bool(data["methods_probed"])

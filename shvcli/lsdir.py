@@ -3,7 +3,7 @@
 import itertools
 import string
 
-from shv import Cpon, RpcError, RpcMethodDesc, RpcMethodFlags
+from shv import Cpon, RpcDir, RpcError
 
 from .client import Client, Node
 from .cliitems import CliItems
@@ -30,14 +30,14 @@ def ls_node_format(
     )
 
 
-def dir_method_format(method: RpcMethodDesc) -> tuple[str, str]:
+def dir_method_format(method: RpcDir) -> tuple[str, str]:
     """Print format for single method info."""
     methstyle = ""
     if method.name in {"ls", "dir"}:
         methstyle = "ansibrightblack"
-    elif RpcMethodFlags.SETTER in method.flags:
+    elif RpcDir.Flag.SETTER in method.flags:
         methstyle = "ansiyellow"
-    elif RpcMethodFlags.GETTER in method.flags:
+    elif RpcDir.Flag.GETTER in method.flags:
         if method.signals:
             methstyle = "ansimagenta"
         else:
@@ -51,12 +51,12 @@ def dir_method_format(method: RpcMethodDesc) -> tuple[str, str]:
     )
 
 
-def dir_signal_format(method: RpcMethodDesc, signal: str) -> tuple[str, str]:
+def dir_signal_format(method: RpcDir, signal: str) -> tuple[str, str]:
     """Print format for signals."""
     sigstyle = "ansipurple"
     if method.name in {"ls", "dir"}:
         sigstyle = "ansibrightblack"
-    elif RpcMethodFlags.GETTER in method.flags:
+    elif RpcDir.Flag.GETTER in method.flags:
         sigstyle = "ansimagenta"
     label = f"{method.name}:{signal}"
     return (
@@ -111,7 +111,7 @@ async def dir_method(client: Client, items: CliItems) -> None:
     if AutoGetOption(client.state) and any(_use_autoget(d) for d in dirr):
         w = max(len(d.name) for d in dirr)
         for d in dirr:
-            if RpcMethodFlags.NOT_CALLABLE in d.flags:
+            if RpcDir.Flag.NOT_CALLABLE in d.flags:
                 continue  # Ignore not callable
             n = [("", " " * (w - len(d.name))), dir_method_format(d)]
             if _use_autoget(d):
@@ -138,8 +138,8 @@ async def dir_method(client: Client, items: CliItems) -> None:
         print_flist(dir_signal_format(d, s) for d in dirr for s in d.signals)
 
 
-def _use_autoget(method: RpcMethodDesc) -> bool:
+def _use_autoget(method: RpcDir) -> bool:
     return (
-        RpcMethodFlags.GETTER in method.flags
-        and RpcMethodFlags.LARGE_RESULT_HINT not in method.flags
+        RpcDir.Flag.GETTER in method.flags
+        and RpcDir.Flag.LARGE_RESULT_HINT not in method.flags
     )
