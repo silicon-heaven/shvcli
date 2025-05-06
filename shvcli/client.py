@@ -14,6 +14,7 @@ from shv import (
 )
 
 from . import VERSION
+from .options import CallQueryTimeout, CallRetryTimeout
 from .path import SHVPath
 from .state import State
 from .tools.print import print_cpon
@@ -85,7 +86,14 @@ class Client(SHVClient):
                 Tree(self.state).valid_path(path).methods.setdefault(method, None)
 
         try:
-            res = await super().call(path, method, *args, **kwargs)
+            res = await super().call(
+                path,
+                method,
+                *args,
+                query_timeout=float(CallQueryTimeout(self.state)),
+                retry_timeout=float(CallRetryTimeout(self.state)),
+                **kwargs,
+            )
         except RpcMethodNotFoundError as exc:
             raise exc
         except RpcError as exc:

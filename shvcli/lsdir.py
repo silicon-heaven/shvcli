@@ -1,5 +1,7 @@
 """Special handling of ls and dir methods."""
 
+import asyncio
+import contextlib
 import itertools
 import string
 
@@ -74,32 +76,16 @@ async def ls_method(client: Client, items: CliItems) -> None:
     if AutoGetOption(client.state):
         for nn, nv in dict(node).items():
             if not nv.methods_probed:
-                try:
+                with contextlib.suppress(RpcError):
                     await client.dir(str(path / nn))
-                except RpcError:
-                    pass
         if any("get" in nv.methods for nv in node.values()):
             w = max(len(n) for n in node.keys())
             for nn, nv in node.items():
                 n = [("", " " * (w - len(nn))), ls_node_format(nn, nv)]
                 if "get" in nv.methods:
-                    try:
-                        resp = await client.call(
-                            str(path / nn),
-                            "get",
-                            call_attempts=1,
-                            call_timeout=float(AutoGetTimeoutOption(client.state)),
-                        )
-                    except (RpcError, TimeoutError):
-                        pass
-                    else:
-                        print_row(
-                            itertools.chain(
-                                iter([*n, ("", "  ")]), cpon_ftext(Cpon.pack(resp))
-                            )
-                        )
-                        continue
-                print_row(n)
+                    await _autoget_print(client, n, str(path / nn), "get")
+                else:
+                    print_row(n)
             return
     print_flist(ls_node_format(nn, nv) for nn, nv in node.items())
 
@@ -107,35 +93,20 @@ async def ls_method(client: Client, items: CliItems) -> None:
 async def dir_method(client: Client, items: CliItems) -> None:
     """SHV dir method that is just smarter than regular call."""
     path = items.path_param
-    dirr = await client.dir(str(path))
-    if AutoGetOption(client.state) and any(_use_autoget(d) for d in dirr):
-        w = max(len(d.name) for d in dirr)
-        for d in dirr:
-            if RpcDir.Flag.NOT_CALLABLE in d.flags:
-                continue  # Ignore not callable
+    dirres = await client.dir(str(path))
+    methods = [d for d in dirres if RpcDir.Flag.NOT_CALLABLE not in d.flags]
+    if AutoGetOption(client.state) and any(_use_autoget(d) for d in methods):
+        w = max(len(d.name) for d in methods)
+        for d in methods:
             n = [("", " " * (w - len(d.name))), dir_method_format(d)]
             if _use_autoget(d):
-                try:
-                    resp = await client.call(
-                        str(path),
-                        d.name,
-                        call_attempts=1,
-                        call_timeout=float(AutoGetTimeoutOption(client.state)),
-                    )
-                except (RpcError, TimeoutError):
-                    pass
-                else:
-                    print_row(
-                        itertools.chain(
-                            iter([*n, ("", "  ")]), cpon_ftext(Cpon.pack(resp))
-                        )
-                    )
-                    continue
-            print_row(n)
+                await _autoget_print(client, n, str(path), d.name)
+            else:
+                print_row(n)
     else:
-        print_flist(dir_method_format(d) for d in dirr)
-    if any(d.signals for d in dirr):
-        print_flist(dir_signal_format(d, s) for d in dirr for s in d.signals)
+        print_flist(dir_method_format(d) for d in methods)
+    if any(d.signals for d in methods):
+        print_flist(dir_signal_format(d, s) for d in methods for s in d.signals)
 
 
 def _use_autoget(method: RpcDir) -> bool:
@@ -143,3 +114,14 @@ def _use_autoget(method: RpcDir) -> bool:
         RpcDir.Flag.GETTER in method.flags
         and RpcDir.Flag.LARGE_RESULT_HINT not in method.flags
     )
+
+
+async def _autoget_print(
+    client: Client, prefix: list[tuple[str, str]], path: str, method: str
+) -> None:
+    try:
+        async with asyncio.timeout(float(AutoGetTimeoutOption(client.state))):
+            resp = await client.call(path, method)
+    except (RpcError, TimeoutError):
+        return
+    print_row(itertools.chain(iter([*prefix, ("", "  ")]), cpon_ftext(Cpon.pack(resp))))

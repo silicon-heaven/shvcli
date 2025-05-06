@@ -7,7 +7,7 @@ import collections.abc
 import logging
 
 from .args import ArgsParseFuncGenT, register_argparser
-from .option import BoolOption, FloatOption, IntOption
+from .option import BoolOption, FloatOption
 from .state import State
 
 
@@ -81,34 +81,41 @@ class DebugOption(BoolOption):
         return logging.root.level >= logging.DEBUG
 
 
-class CallAttemptsOption(IntOption):
-    """Number of call attempts before call is abandoned."""
+class CallQueryTimeout(FloatOption):
+    """Timeout in seconds specifying how offten call is queried.
+
+    This has effect that update of request state is faster.
+    """
 
     def __init__(self, state: State) -> None:
         super().__init__(state)
-        self._value = 1
+        self._value = 0.25
 
     @classmethod
     def aliases(cls) -> collections.abc.Sequence[str]:  # noqa: D102
-        return ("call_attempts",)
+        return ("call_query_timeout",)
 
-    def __int__(self) -> int:
+    def __float__(self) -> float:
         return self._value
 
-    def rset(self, value: int) -> None:  # noqa: D102
+    def rset(self, value: float) -> None:  # noqa: D102
         self._value = value
 
 
-class CallTimeoutOption(FloatOption):
-    """Timeout in seconds before call is abandoned."""
+class CallRetryTimeout(FloatOption):
+    """Timeout in seconds when we try to send request again.
+
+    This has mainly effect if
+    This has effect that update of request state is faster.
+    """
 
     def __init__(self, state: State) -> None:
         super().__init__(state)
-        self._value = 5.0
+        self._value = 60.0
 
     @classmethod
     def aliases(cls) -> collections.abc.Sequence[str]:  # noqa: D102
-        return ("call_timeout",)
+        return ("call_retry_timeout",)
 
     def __float__(self) -> float:
         return self._value

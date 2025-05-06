@@ -11,7 +11,8 @@ from prompt_toolkit.history import FileHistory
 from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.key_binding.key_processor import KeyPressEvent
 from prompt_toolkit.patch_stdout import patch_stdout
-from prompt_toolkit.shortcuts import CompleteStyle
+from prompt_toolkit.shortcuts import CompleteStyle, ProgressBar, ProgressBarCounter
+from prompt_toolkit.shortcuts.progress_bar import formatters
 from shv import RpcError
 
 from .builtin import Builtins
@@ -19,10 +20,20 @@ from .client import Client
 from .cliitems import CliItems
 from .complet import CliCompleter
 from .lsdir import dir_method, ls_method
-from .options import CallAttemptsOption, CallTimeoutOption, RawOption, ViModeOption
+from .options import RawOption, ViModeOption
 from .tools.print import print_cpon
 from .tree import Tree
 from .valid import CliValidator
+
+progressbar_formatter = [
+    formatters.Text(" "),
+    formatters.Label(),
+    formatters.Text(" "),
+    formatters.Bar(sym_a="#", sym_b="#", sym_c="."),
+    formatters.Text("  "),
+    formatters.Percentage(),
+    formatters.Text("  "),
+]
 
 
 async def run(client: Client) -> None:
@@ -105,45 +116,66 @@ async def handle_line(client: Client, cmdline: str) -> None:
     """Handle single command line invocation."""
     items = CliItems(cmdline, client.state.path)
     raw = RawOption(client.state)
-    if items.method:
-        try:
-            if items.method.startswith("!"):
-                builtin = Builtins(client.state).get(items.method[1:])
-                if builtin is not None:
-                    await builtin.run(items, client)
-                else:
-                    print(f"No such builtin method '{items.method[1:]}'")
-            elif items.method == "ls" and not raw:
-                await ls_method(client, items)
-            elif items.method == "dir" and not raw:
-                await dir_method(client, items)
+    try:
+        if not items.method:
+            # Patch prefix change
+            newpath = items.path
+            if await client.path_is_valid(str(newpath)):
+                client.state.path = newpath
             else:
-                try:
-                    # To cover case when typing is invalid we allow send valid
-                    # CPON and thus we do not pass type hint here.
-                    param = items.cpon_param()
-                except (ValueError, EOFError):
-                    print(f"Invalid CPON format of parameter: {items.param}")
-                else:
-                    print_cpon(
-                        await client.call(
-                            str(items.path),
-                            items.method,
-                            param,
-                            call_attempts=int(CallAttemptsOption(client.state)),
-                            call_timeout=float(CallTimeoutOption(client.state)),
-                        )
-                    )
-        except TimeoutError:
-            print("Call timed out.")
-        except asyncio.CancelledError as exc:
-            print("Call canceled")
-            raise exc
-        except RpcError as exc:
-            print(f"{type(exc).__name__}: {exc.message}")
-    else:
-        newpath = items.path
-        if await client.path_is_valid(str(newpath)):
-            client.state.path = newpath
-        else:
-            print(f"Invalid path: {newpath}")
+                print(f"Invalid path: {newpath}")
+            return
+
+        # Builtin method calls
+        if items.method.startswith("!"):
+            builtin = Builtins(client.state).get(items.method[1:])
+            if builtin is not None:
+                await builtin.run(items, client)
+            else:
+                print(f"No such builtin method '{items.method[1:]}'")
+            return
+
+        # ls and dir method call
+        if not raw:
+            if items.method == "ls":
+                await ls_method(client, items)
+                return
+            if items.method == "dir":
+                await dir_method(client, items)
+                return
+
+        # Any other method call
+        try:
+            # To cover case when typing is invalid we allow send valid
+            # CPON and thus we do not check type hint here.
+            param = items.cpon_param()
+        except (ValueError, EOFError):
+            print(f"Invalid CPON format of parameter: {items.param}")
+            return
+
+        with contextlib.ExitStack() as es:
+            pbcnt: ProgressBarCounter | None = None
+
+            def progress(v: float | None) -> None:
+                seq = ["|", "/", "-", "\\"]
+                nonlocal pbcnt
+                if pbcnt is None:
+                    es.enter_context(patch_stdout())
+                    pbcnt = es.enter_context(
+                        ProgressBar(formatters=progressbar_formatter)
+                    )(label=seq[0], total=10000)
+                pbcnt.items_completed = int((v or 0) * 10000)
+                pbcnt.label = seq[(seq.index(str(pbcnt.label)) + 1) % len(seq)]
+
+            result = await client.call(
+                str(items.path), items.method, param, progress=progress
+            )
+            if pbcnt is not None:
+                pbcnt.items_completed = 10000
+                pbcnt.label = " "
+        print_cpon(result)
+    except asyncio.CancelledError:
+        print("Call cancelled")
+        raise
+    except RpcError as exc:
+        print(f"{type(exc).__name__}: {exc.message}")

@@ -97,11 +97,13 @@ following options are available without any plugins:
   be also overwhelming. The default is ``false``. It is beneficial to disable
   the **autobrobe** once you enable debug because otherwise output on CLI will
   be mangled on completion.
-* **call_attempts**: Number of attempts before method call is abandoned and
-  timeout is reported. This makes the total time multiple of **call_timeout**.
-* **call_timeout**: Timeout in seconds before call attempt is abandoned. Based
-  on the **call_attempts** call is attempted again or timeout is reported.
-* **autoget_timeout**: Timeout in seconds before call that is part of autoget
+* **call_query_timeout**: Timeout in seconds for status request query. The
+  shorter time will result in faster request lost detection while very short
+  time will load SHV network too much.
+* **call_retry_timeout**: Timeout in seconds when call request is sent again if
+  no response is received. This is not applied if query is and thus this mostly
+  is used only in case when method doesn't support delayed responses.
+* **autoget_timeout**: Timeout in seconds for call that is part of autoget
   functionality.
 
 Example configuration file:
