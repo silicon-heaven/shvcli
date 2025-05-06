@@ -244,11 +244,13 @@ def _argparser(parser: argparse.ArgumentParser) -> ArgsParseFuncGenT:
         "--set",
         action="append",
         default=[],
+        metavar="OPTION",
         help="The runtime options to be set.",
     )
     parser.add_argument(
-        "--set-options",
+        "--list-options",
         action=_SetOptionsAction,
+        nargs=0,
         help="List all available options.",
     )
     args, state = yield
