@@ -2,6 +2,7 @@
 
 import asyncio
 import contextlib
+import datetime
 import pathlib
 import signal
 
@@ -20,7 +21,7 @@ from .client import Client
 from .cliitems import CliItems
 from .complet import CliCompleter
 from .lsdir import dir_method, ls_method
-from .options import RawOption, ViModeOption
+from .options import CallDuration, RawOption, ViModeOption
 from .tools.print import print_cpon
 from .tree import Tree
 from .valid import CliValidator
@@ -167,13 +168,17 @@ async def handle_line(client: Client, cmdline: str) -> None:
                 pbcnt.items_completed = int((v or 0) * 10000)
                 pbcnt.label = seq[(seq.index(str(pbcnt.label)) + 1) % len(seq)]
 
+            start_time = datetime.datetime.now()
             result = await client.call(
                 str(items.path), items.method, param, progress=progress
             )
+            end_time = datetime.datetime.now()
             if pbcnt is not None:
                 pbcnt.items_completed = 10000
                 pbcnt.label = " "
         print_cpon(result)
+        if CallDuration(client.state):
+            print(f"Call duration: {end_time - start_time}")
     except asyncio.CancelledError:
         print("Call cancelled")
         raise

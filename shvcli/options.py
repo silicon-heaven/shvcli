@@ -81,6 +81,20 @@ class DebugOption(BoolOption):
         return logging.root.level >= logging.DEBUG
 
 
+class CallDuration(BoolOption):
+    """If call duration should be measured and time printed after call is finished."""
+
+    def __init__(self, state: State) -> None:
+        super().__init__(state)
+        self._value = False
+
+    def __bool__(self) -> bool:
+        return self._value
+
+    def rset(self, value: bool) -> None:  # noqa: D102
+        self._value = value
+
+
 class CallQueryTimeout(FloatOption):
     """Timeout in seconds specifying how offten call is queried.
 
