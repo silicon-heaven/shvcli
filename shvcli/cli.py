@@ -61,9 +61,7 @@ async def cliapp(client: Client) -> None:
     loop = asyncio.get_running_loop()
 
     histfile = pathlib.Path.home() / ".shvcli.history"
-    if not histfile.exists():
-        with histfile.open("w") as _:
-            pass
+    histfile.touch()
 
     bindings = KeyBindings()
 
