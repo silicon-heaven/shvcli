@@ -61,7 +61,8 @@
           shfmt
           statix
           twine
-          (python3.withPackages (pypkgs: with pypkgs; [build sphinx-autobuild]))
+          (python3.withPackages (pypkgs:
+              with pypkgs; [build sphinx-autobuild]))
         ];
         inputsFrom = [self.packages.${system}.default];
       };
