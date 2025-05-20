@@ -11,8 +11,6 @@ import typing
 
 import shv
 
-from .path import SHVPath
-
 
 class StateVarMeta(abc.ABCMeta):
     """The Meta class for the StateVar."""
@@ -69,7 +67,7 @@ class State(dict[type[StateVar], StateVar]):
 
     def __init__(self) -> None:
         super().__init__()
-        self.path: SHVPath = SHVPath()
+        self.path: shv.SHVPath = shv.SHVPath()
         """Current path we are working relative to."""
 
         for cls in StateVar.variables:

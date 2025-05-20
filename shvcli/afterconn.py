@@ -5,9 +5,8 @@ import collections.abc
 import typing
 
 from .args import ArgsParseFuncGenT, register_argparser
-from .client import Client
+from .client import Client, SHVPath
 from .cliitems import CliItems
-from .path import SHVPath
 from .scan import scan_nodes
 from .state import StateVar
 
@@ -51,6 +50,6 @@ def _argparser(parser: argparse.ArgumentParser) -> ArgsParseFuncGenT:
         for ri in args.subscribe:
             await client.subscribe(CliItems.extend_ri(ri))
         if args.scan:
-            await scan_nodes(client, SHVPath(), args.scan_dept)
+            await scan_nodes(client, SHVPath(""), args.scan_dept)
 
     Afterconn(state).append(afterconn)

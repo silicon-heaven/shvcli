@@ -10,9 +10,9 @@
     inherit (flakepy.inputs.flake-utils.lib) eachSystem defaultSystems;
     inherit (nixpkgs.lib) composeManyExtensions;
 
-    pyproject = flakepy.lib.pyproject ./. {};
+    pyproject = flakepy.lib.readPyproject ./. {};
 
-    pypackage = pyproject.package ({
+    pypackage = pyproject.buildPackage ({
       runCommandLocal,
       python,
       shvcli,

@@ -3,11 +3,9 @@
 import contextlib
 import string
 
-from shv import SHVType
+from shv import SHVPath, SHVType
 from shv.cpon import Cpon
 from shv.rpctypes import RpcType, RpcTypeParseError, rpctype_parse
-
-from .path import SHVPath
 
 
 class CliItems:

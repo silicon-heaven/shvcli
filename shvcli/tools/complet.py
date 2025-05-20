@@ -3,9 +3,9 @@
 import collections.abc
 import itertools
 
+import shv
 from prompt_toolkit.completion import Completion
 
-from ..path import SHVPath
 from ..tree import Tree
 
 
@@ -21,7 +21,7 @@ def comp_from(
 
 
 def comp_path(
-    path: str, path_prefix: SHVPath, tree: Tree, tail: str = ":"
+    path: str, path_prefix: shv.SHVPath, tree: Tree, tail: str = ":"
 ) -> collections.abc.Iterable[Completion]:
     """Perform completion for the given current path."""
     pth, _, word = path.rpartition("/")
@@ -36,7 +36,7 @@ def comp_path(
 
 
 def comp_signal_ri(
-    ri: str, path_prefix: SHVPath, tree: Tree
+    ri: str, path_prefix: shv.SHVPath, tree: Tree
 ) -> collections.abc.Iterable[Completion]:
     """Completion for RPC RI."""
     match ri.count(":"):

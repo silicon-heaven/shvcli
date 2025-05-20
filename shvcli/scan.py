@@ -6,8 +6,7 @@ directly when configured.
 
 from prompt_toolkit.shortcuts import ProgressBar, ProgressBarCounter
 
-from .client import Client
-from .path import SHVPath
+from .client import Client, SHVPath
 
 
 async def scan_nodes(client: Client, path: SHVPath, depth: int = 3) -> None:

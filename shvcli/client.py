@@ -10,12 +10,12 @@ from shv import (
     RpcMessage,
     RpcMethodNotFoundError,
     SHVClient,
+    SHVPath,
     SHVType,
 )
 
 from . import VERSION
 from .options import CallQueryTimeout, CallRetryTimeout
-from .path import SHVPath
 from .state import State
 from .tools.print import print_cpon
 from .tree import Node, Tree
@@ -38,7 +38,7 @@ class Client(SHVClient):
             Tree(self.state).valid_path(msg.path).methods.setdefault(msg.source, None)
             print_cpon(msg.param, f"{msg.path}:{msg.source}:{msg.signal_name}: ", True)
 
-    async def ls(self, path: str) -> list[str]:
+    async def ls(self, path: str | SHVPath) -> list[str]:
         """List same as in ValueClient but with result being preserved in tree."""
         res: list[str]
         try:
@@ -53,7 +53,7 @@ class Client(SHVClient):
 
         return res
 
-    async def dir(self, path: str, details: bool = False) -> list[RpcDir]:
+    async def dir(self, path: str | SHVPath, details: bool = False) -> list[RpcDir]:
         """List methods same as in ValueClient but result is being preserved in tree."""
         res: list[RpcDir]
         try:
@@ -70,7 +70,7 @@ class Client(SHVClient):
 
     async def call(
         self,
-        path: str,
+        path: str | SHVPath,
         method: str,
         *args: typing.Any,  # noqa ANN401
         **kwargs: typing.Any,  # noqa ANN401

@@ -10,13 +10,12 @@ import shv
 from prompt_toolkit.shortcuts import ProgressBar, ProgressBarCounter
 
 from .client import Client
-from .path import SHVPath
 
 
 async def copy_file(
     client: Client,
-    src: pathlib.Path | SHVPath,
-    dest: pathlib.Path | SHVPath,
+    src: pathlib.Path | shv.SHVPath,
+    dest: pathlib.Path | shv.SHVPath,
     label: str = "",
 ) -> None:
     """Copy file with support for local and SHV RPC files.
@@ -28,12 +27,12 @@ async def copy_file(
     destfile: shv.RpcFile | io.IOBase | None = None
 
     try:
-        if isinstance(src, SHVPath):
+        if isinstance(src, shv.SHVPath):
             srcfile = shv.RpcFile(client, str(src), flags=shv.RpcFile.Flag(0))
             if not await srcfile.readable():
                 raise FileNotFoundError(f"No such readable SHV RPC file: {src}")
             srcsiz = await srcfile.size()
-        if isinstance(dest, SHVPath):
+        if isinstance(dest, shv.SHVPath):
             destfile = shv.RpcFile(client, str(dest), flags=shv.RpcFile.Flag(0))
             if not await destfile.writable():
                 raise FileNotFoundError(f"No such writable SHV RPC file: {dest}")
