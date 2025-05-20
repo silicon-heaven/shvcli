@@ -70,11 +70,11 @@
         "nixpkgs": "nixpkgs_2"
       },
       "locked": {
-        "lastModified": 1747745209,
-        "narHash": "sha256-Izu+7SUGRtoEk3TvfASF9kkCwkTqdEUvTsCHsAgWtwM=",
+        "lastModified": 1747756733,
+        "narHash": "sha256-+9cnxYoMnYt+r90GedAwU8NA+jOEWcaFIIAftkuKNq8=",
         "owner": "silicon-heaven",
         "repo": "pyshv",
-        "rev": "bcd199b2eb7b6408b03b1a0f81f6d1cf7e6cb110",
+        "rev": "d77c7236220dd6b81f68930217c448003b273356",
         "type": "gitlab"
       },
       "original": {

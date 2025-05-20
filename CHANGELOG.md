@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Inputted path and method is now validated against already discovered tree
 
 ### Changed
+- Minimal supported version of pySHV is now 0.9.0
 - Configuration file format from INI to TOML and section `config` is now called
   `option`.
 - Automatic node probing now happens in more situations and such as for
