@@ -29,7 +29,9 @@ class CliItems:
         path = "" if ":" not in ri and "/" not in ri else ri.partition(":")[0]
         if any(c in path for c in string.whitespace):
             raise ValueError("Path can't have white character in it.")
-        return self.path_prefix / path
+        if path == "/":
+            return SHVPath("")
+        return self.path_prefix / path.rstrip("/")
 
     @property
     def method(self) -> str:
