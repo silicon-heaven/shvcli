@@ -18,9 +18,11 @@ from pygments.lexers.data import JsonLexer
 def print_ftext(
     fstrs: collections.abc.Iterable[tuple[str, str]]
     | collections.abc.Iterator[tuple[str, str]],
+    *args: typing.Any,  # noqa: ANN401
+    **kwargs: typing.Any,  # noqa: ANN401
 ) -> None:
     """Call :meth:`print_formatted_text` with :class:`FormattedText`."""
-    print_formatted_text(FormattedText(fstrs))
+    print_formatted_text(FormattedText(fstrs), *args, **kwargs)
 
 
 def print_flist(

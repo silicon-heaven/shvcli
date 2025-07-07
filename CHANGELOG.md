@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Builtin `!history`
 
 
 ## [0.7.0] - 2025-06-25
@@ -127,5 +129,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Initial implementation
 
 
-[unreleased]: /compare/v0.7.0..HEAD
-[0.7.0]: /-/tags/v0.7.0
+[unreleased]: https://gitlab.com/silicon-heaven/shvcli/compare/v0.7.0..HEAD
+[0.7.0]: https://gitlab.com/silicon-heaven/shvcli/-/tags/v0.7.0

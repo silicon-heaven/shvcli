@@ -105,6 +105,8 @@ following options are available without any plugins:
   is used only in case when method doesn't support delayed responses.
 * **autoget_timeout**: Timeout in seconds for call that is part of autoget
   functionality.
+* **history_count**: Integer number used for number of records requested at time
+  for ``!history`` builtin.
 
 Example configuration file:
 
@@ -166,6 +168,10 @@ parameter must be path to the local file where data will be stored.
 
 **verify**: provides a way to verify RPC File node against local file. The
 parameter must be path to the local file used for the verification.
+
+**history**: is helper to list recorded history of signals by ``.history`` API.
+The listing is incremental in ``history_count`` configured number of records and
+in the order from the newest ones.
 
 
 Special methods ``ls`` and ``dir``
