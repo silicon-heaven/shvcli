@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Path prefix change ending with `/` always resetting to the root (`/`)
+- Reported state of `debug` being always `true`. Now it reflects the actual
+  debug state.
 
 
 ## [0.7.0] - 2025-06-25

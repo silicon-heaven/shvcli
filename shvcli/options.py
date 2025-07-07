@@ -78,7 +78,7 @@ class DebugOption(BoolOption):
         logging.root.setLevel(logging.DEBUG if value else logging.WARNING)
 
     def __bool__(self) -> bool:
-        return logging.root.level >= logging.DEBUG
+        return logging.root.level <= logging.DEBUG
 
 
 class CallDuration(BoolOption):
