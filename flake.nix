@@ -22,8 +22,8 @@
 
       passthru.withPlugins = plugins:
         runCommandLocal "shvcli-${pyproject.version}" {
-          env = python.buildEnv.override {extraLibs = [shvcli] ++ plugins;};
-        } "mkdir -p $out/bin && ln -sf $env/bin/shvcli $out/bin/shvcli";
+          environ = python.buildEnv.override {extraLibs = [shvcli] ++ plugins;};
+        } "mkdir -p $out/bin && ln -sf $environ/bin/shvcli $out/bin/shvcli";
     });
   in
     {
