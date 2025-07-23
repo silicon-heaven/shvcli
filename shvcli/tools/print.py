@@ -8,6 +8,7 @@ import typing
 
 import more_itertools
 import shv
+import shv.cpon
 from prompt_toolkit import print_formatted_text
 from prompt_toolkit.document import Document
 from prompt_toolkit.formatted_text import FormattedText
@@ -127,12 +128,14 @@ def _wrap_cpon(cpon: str) -> collections.abc.Iterator[str]:
 def print_cpon(data: shv.SHVType, prefix: str = "", short: bool = False) -> None:
     """Print given data in CPON format."""
     if short:
-        cpon = "\n".join(_wrap_cpon(prefix + shv.Cpon.pack(data)))[len(prefix) :]
+        cpon = "\n".join(_wrap_cpon(prefix + shv.cpon.Cpon.pack(data)))[len(prefix) :]
         print_ftext(itertools.chain(iter((("", prefix),)), cpon_ftext(cpon)))
     else:
         print_ftext(
             itertools.chain(
                 iter((("", prefix),)),
-                cpon_ftext(shv.Cpon.pack(data, shv.CponWriter.Options(indent=b" "))),
+                cpon_ftext(
+                    shv.cpon.Cpon.pack(data, shv.cpon.CponWriter.Options(indent=b" "))
+                ),
             )
         )

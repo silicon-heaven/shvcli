@@ -185,6 +185,17 @@ Their parameter is also handled in a special way. It is considered to be
 additional path suffix unless it is a valid CPON. This is allowed to match the
 common shells.
 
+You can see ``raw`` option to disable this behavior.
+
+
+OAuth2 login
+------------
+
+SHVCLI supports non-standard login method OAuth2. This is not defined by SHV
+standard. The non-standard URL query ``oauth2=y`` is accepted to perform the
+OAuth2 login. The login is facilitated by web browser. SHVCLI will start server
+on ``tcp://localhost:37719/`` to be able to receive token.
+
 
 Plugins
 -------

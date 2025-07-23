@@ -10,6 +10,7 @@ import pathlib
 import typing
 
 import shv
+import shv.chainpack
 
 
 class StateVarMeta(abc.ABCMeta):
@@ -79,7 +80,7 @@ class State(dict[type[StateVar], StateVar]):
         with contextlib.suppress(FileNotFoundError):
             with cachefile.open("rb") as f:
                 try:
-                    data = shv.ChainPack.unpack(f.read())
+                    data = shv.chainpack.ChainPack.unpack(f.read())
                 except (ValueError, EOFError):
                     return
             if shv.is_shvmap(data):
@@ -93,4 +94,4 @@ class State(dict[type[StateVar], StateVar]):
             var.cache_dump(data)
         cachefile.parent.mkdir(parents=True, exist_ok=True)
         with cachefile.open("wb") as f:
-            f.write(shv.ChainPack.pack(data))
+            f.write(shv.chainpack.ChainPack.pack(data))
