@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - Builtin `!history`
+- Support for OAuth2 login with custom `oauth2=y` URL query
 
 ### Fixed
 - Path prefix change ending with `/` always resetting to the root (`/`)

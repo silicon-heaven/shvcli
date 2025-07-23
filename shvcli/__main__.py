@@ -5,7 +5,6 @@ import asyncio
 from .afterconn import Afterconn
 from .args import args_apply, args_parse
 from .cli import run
-from .client import Client
 from .config import load_config
 from .plugins import load_plugins
 from .state import State
@@ -22,7 +21,7 @@ def main() -> None:
     state.cache_load(Url(state).cache_path())
 
     async def async_main() -> None:
-        client = await Client.connect(Url(state).url, state=state)
+        client = await Url(state).connect()
         await Afterconn(state).run(client)
         await run(client)
         if client.client.connected:

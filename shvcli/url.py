@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import argparse
+import asyncio
 import contextlib
+import dataclasses
 import os
 import pathlib
 import re
@@ -12,11 +14,34 @@ import subprocess
 import typing
 
 import shv
+import shv.rpctransport
 import xdg.BaseDirectory
 
 from .args import ArgsParseFuncGenT, register_argparser
+from .client import Client
 from .config import Config, ConfigError, register_config
+from .oauth import oauth_login_token
 from .state import State, StateVar
+
+
+class RpcUrlEx(shv.RpcUrl):
+    """Extended :class:`shv.RpcUrl`.
+
+    This defines additional attributes custom for the SHVCLI.
+    """
+
+    oauth2: bool = False
+    """If OAuth2 login method should be used or not."""
+
+    def _parse_query(self, pqs: dict[str, list[str]]) -> None:
+        super()._parse_query(pqs)
+        if opts := pqs.pop("oauth2", []):
+            if opts[0] in {"true", "t", "y"}:
+                self.oauth2 = True
+            elif opts[0] in {"false", "f", "n"}:
+                self.oauth2 = False
+            else:
+                raise ValueError(f"Invalid for verify: {opts[0]}")
 
 
 class Url(StateVar):
@@ -28,8 +53,9 @@ class Url(StateVar):
         """The mapping of hosts aliases to the full URLs."""
         self.hosts_shell: dict[str, str] = {}
         """The mapping of aliases to the shell expanded URLs."""
-        self.url: shv.RpcUrl = shv.RpcUrl("localhost")
+        self.url: RpcUrlEx = RpcUrlEx("localhost")
         """SHV RPC URL currectly set as the one to be used."""
+        self._state = state
 
     def set(self, value: str) -> None:
         """Set given value as URL by interpreting it in various ways.
@@ -55,7 +81,7 @@ class Url(StateVar):
                 check=True,
             ).stdout.decode()
         value = self.hosts.get(value, value)
-        self.url = shv.RpcUrl.parse(value)
+        self.url = RpcUrlEx.parse(value)
         # TODO this modifies it even if unix is explicitly specified
         if self.url.protocol is shv.RpcProtocol.UNIX:
             with contextlib.suppress(FileNotFoundError):
@@ -68,13 +94,54 @@ class Url(StateVar):
         return pathlib.Path(xdg.BaseDirectory.save_cache_path("shvcli")) / re.sub(
             r"[^\w_. -]",
             "_",
-            shv.RpcUrl(
+            RpcUrlEx(
                 location=self.url.location,
                 port=self.url.port,
                 protocol=self.url.protocol,
                 login=shv.RpcLogin(username=self.url.login.username),
             ).to_url(),
         )
+
+    async def connect(self) -> Client:
+        """Create new client based on this URL."""
+        url = self.url
+        if self.url.oauth2:
+            base = shv.SHVBase(await shv.rpctransport.connect_rpc_client(self.url))
+            workflows = await base.call("", "workflows")
+            await base.disconnect()
+            if shv.is_shvlist(workflows):
+                oauths = [
+                    v
+                    for v in workflows
+                    if shv.is_shvmap(v)
+                    and isinstance(tp := v.get("type"), str)
+                    and tp.startswith("oauth2")
+                ]
+                if len(oauths) >= 1:
+                    oauth = oauths[0]
+                    tp = oauth.get("type")
+                    client_id = oauth.get("clientId")
+                    authorize_url = oauth.get("authorizeUrl")
+                    token_url = oauth.get("tokenUrl")
+                    scopes = oauth.get("scopes")
+                    assert shv.is_shvlist(scopes)
+                    token = await asyncio.get_running_loop().run_in_executor(
+                        None,
+                        lambda: oauth_login_token(
+                            str(tp),
+                            str(client_id),
+                            str(authorize_url),
+                            str(token_url),
+                            list(str(v) for v in scopes),
+                        ),
+                    )
+                    url = dataclasses.replace(
+                        url,
+                        login=dataclasses.replace(
+                            url.login, token=token, login_type=shv.RpcLoginType.TOKEN
+                        ),
+                    )
+        return await Client.connect(url, state=self._state)
 
 
 @register_config
