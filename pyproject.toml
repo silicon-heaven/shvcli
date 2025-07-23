@@ -39,6 +39,8 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools.packages.find]
 [tool.setuptools.package-data]
 "*" = ["py.typed"]
+[tool.setuptools.cmdclass]
+build_py = "shvcli.__setuptools__.BuildPy"
 
 [tool.coverage.run]
 branch = true
