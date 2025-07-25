@@ -1,6 +1,6 @@
 [project]
 name = "shvcli"
-version = "0.7.0"
+version = "0.8.0"
 description = "Silicon Heaven CLI access application"
 readme = "README.rst"
 license = {file = "LICENSE"}
@@ -9,7 +9,6 @@ authors = [
 ]
 classifiers = [
   "Development Status :: 4 - Beta",
-  "Programming Language :: Python :: 3",
   "Operating System :: OS Independent",
   "Environment :: Console",
   "Intended Audience :: End Users/Desktop",
@@ -19,7 +18,7 @@ classifiers = [
 ]
 requires-python = ">=3.11"
 dependencies = [
-  "pyshv >= 0.9.0",
+  "pyshv >= 0.10.0",
   "prompt_toolkit",
   "pygments",
   "pyxdg",

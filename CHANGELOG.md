@@ -5,10 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.8.0] - 2025-07-25
 ### Added
 - Builtin `!history`
 - Support for OAuth2 login with custom `oauth2=y` URL query
+
+### Changed
+- Minimal supported version of pySHV is now 0.10.0
 
 ### Fixed
 - Path prefix change ending with `/` always resetting to the root (`/`)
@@ -135,5 +138,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Initial implementation
 
 
-[unreleased]: https://gitlab.com/silicon-heaven/shvcli/compare/v0.7.0..HEAD
+[unreleased]: https://gitlab.com/silicon-heaven/shvcli/compare/v0.8.0..HEAD
+[0.8.0]: https://gitlab.com/silicon-heaven/shvcli/compare/v0.7.0..v0.8.0
 [0.7.0]: https://gitlab.com/silicon-heaven/shvcli/-/tags/v0.7.0
