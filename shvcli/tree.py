@@ -7,6 +7,8 @@ import contextlib
 import typing
 
 import shv
+import shv.path
+import shv.rpcdef
 
 from .state import State, StateVar
 
@@ -20,9 +22,9 @@ class Node(collections.abc.Mapping[str, "Node"]):
 
         self.nodes: dict[str, Node] = {}
         """The child nodes of this node."""
-        self.methods: dict[str, shv.RpcDir | None] = {
-            "ls": shv.RpcDir.stdls(),
-            "dir": shv.RpcDir.stddir(),
+        self.methods: dict[str, shv.rpcdef.RpcDir | None] = {
+            "ls": shv.rpcdef.RpcDir.stdls(),
+            "dir": shv.rpcdef.RpcDir.stddir(),
         }
         """The methods discovered to be associated with this method."""
         self.nodes_probed = False
@@ -42,10 +44,10 @@ class Node(collections.abc.Mapping[str, "Node"]):
         """Get number of child nodes."""
         return len(self.nodes)
 
-    def valid_path(self, path: shv.SHVPath | str) -> Node:
+    def valid_path(self, path: shv.path.SHVPath | str) -> Node:
         """Add valid path relative to this node."""
         if isinstance(path, str):
-            path = shv.SHVPath(path)
+            path = shv.path.SHVPath(path)
         node = self
         for n in path.parts:
             if n not in node:
@@ -53,10 +55,10 @@ class Node(collections.abc.Mapping[str, "Node"]):
             node = node[n]
         return node
 
-    def invalid_path(self, path: shv.SHVPath | str) -> None:
+    def invalid_path(self, path: shv.path.SHVPath | str) -> None:
         """Invalidate path as not existent."""
         if isinstance(path, str):
-            path = shv.SHVPath(path)
+            path = shv.path.SHVPath(path)
         pnode = None
         node = self
         for n in path.parts:
@@ -67,7 +69,7 @@ class Node(collections.abc.Mapping[str, "Node"]):
         if pnode is not None:
             pnode.nodes.pop(path.name)
 
-    def get_node(self, path: shv.SHVPath) -> Node | None:
+    def get_node(self, path: shv.path.SHVPath) -> Node | None:
         """Get node on given path."""
         node = self
         for n in path.parts:
@@ -76,7 +78,9 @@ class Node(collections.abc.Mapping[str, "Node"]):
             node = node[n]
         return node
 
-    def get_method(self, path: shv.SHVPath, method: str) -> shv.RpcDir | None:
+    def get_method(
+        self, path: shv.path.SHVPath, method: str
+    ) -> shv.rpcdef.RpcDir | None:
         """Get method from given path."""
         if (node := self.get_node(path)) is not None:
             return node.methods.get(method, None)
@@ -104,8 +108,8 @@ class Node(collections.abc.Mapping[str, "Node"]):
         if shv.is_shvmap(data["methods"]):
             for n, v in data["methods"].items():
                 desc = None
-                with contextlib.suppress(shv.RpcInvalidParamError, ValueError):
-                    desc = shv.RpcDir.from_shv(v)
+                with contextlib.suppress(shv.rpcdef.RpcInvalidParamError, ValueError):
+                    desc = shv.rpcdef.RpcDir.from_shv(v)
                 self.methods[n] = desc
         self.nodes_probed = bool(data["nodes_probed"])
         self.methods_probed = bool(data["methods_probed"])

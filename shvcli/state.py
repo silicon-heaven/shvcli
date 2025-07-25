@@ -11,6 +11,7 @@ import typing
 
 import shv
 import shv.chainpack
+import shv.path
 
 
 class StateVarMeta(abc.ABCMeta):
@@ -68,7 +69,7 @@ class State(dict[type[StateVar], StateVar]):
 
     def __init__(self) -> None:
         super().__init__()
-        self.path: shv.SHVPath = shv.SHVPath()
+        self.path = shv.path.SHVPath()
         """Current path we are working relative to."""
 
         for cls in StateVar.variables:

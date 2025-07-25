@@ -8,6 +8,8 @@ import datetime
 import itertools
 
 import shv
+import shv.path
+import shv.rpcdef
 from prompt_toolkit import Application
 from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.key_binding.key_processor import KeyPressEvent
@@ -41,10 +43,12 @@ class BuiltinHistory(Builtin):
         return "[SINCE]", "Get the node's history."
 
     @staticmethod
-    async def _locate_getlog(path: shv.SHVPath, client: Client) -> shv.SHVPath | None:
+    async def _locate_getlog(
+        path: shv.path.SHVPath, client: Client
+    ) -> shv.path.SHVPath | None:
         for pth in itertools.chain(reversed(path.parents), iter((path,))):
             hpth = pth / ".history" / (path.relative_to(pth))
-            with contextlib.suppress(shv.RpcMethodNotFoundError):
+            with contextlib.suppress(shv.rpcdef.RpcMethodNotFoundError):
                 if await client.dir_exists(hpth, "getLog"):
                     return hpth
         return None

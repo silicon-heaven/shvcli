@@ -4,15 +4,11 @@ from __future__ import annotations
 
 import typing
 
-from shv import (
-    RpcDir,
-    RpcError,
-    RpcMessage,
-    RpcMethodNotFoundError,
-    SHVClient,
-    SHVPath,
-    SHVType,
-)
+from shv import SHVType
+from shv.path import SHVPath
+from shv.rpcapi.client import SHVClient
+from shv.rpcdef import RpcDir, RpcError, RpcMethodNotFoundError
+from shv.rpcmessage import RpcMessage
 
 from . import VERSION
 from .options import CallQueryTimeout, CallRetryTimeout

@@ -5,8 +5,8 @@ import contextlib
 import itertools
 import string
 
-from shv import RpcDir, RpcError
 from shv.cpon import Cpon
+from shv.rpcdef import RpcDir, RpcError
 
 from .client import Client, Node
 from .cliitems import CliItems

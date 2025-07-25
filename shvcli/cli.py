@@ -14,7 +14,7 @@ from prompt_toolkit.key_binding.key_processor import KeyPressEvent
 from prompt_toolkit.patch_stdout import patch_stdout
 from prompt_toolkit.shortcuts import CompleteStyle, ProgressBar, ProgressBarCounter
 from prompt_toolkit.shortcuts.progress_bar import formatters
-from shv import RpcError
+from shv.rpcdef import RpcError
 
 from .builtin import Builtins
 from .client import Client

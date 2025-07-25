@@ -14,7 +14,10 @@ import subprocess
 import typing
 
 import shv
+import shv.rpcapi
+import shv.rpclogin
 import shv.rpctransport
+import shv.rpcurl
 import xdg.BaseDirectory
 
 from .args import ArgsParseFuncGenT, register_argparser
@@ -24,8 +27,8 @@ from .oauth import oauth_login_token
 from .state import State, StateVar
 
 
-class RpcUrlEx(shv.RpcUrl):
-    """Extended :class:`shv.RpcUrl`.
+class RpcUrlEx(shv.rpcurl.RpcUrl):
+    """Extended :class:`shv.rpcurl.RpcUrl`.
 
     This defines additional attributes custom for the SHVCLI.
     """
@@ -83,11 +86,11 @@ class Url(StateVar):
         value = self.hosts.get(value, value)
         self.url = RpcUrlEx.parse(value)
         # TODO this modifies it even if unix is explicitly specified
-        if self.url.protocol is shv.RpcProtocol.UNIX:
+        if self.url.protocol is shv.rpcurl.RpcProtocol.UNIX:
             with contextlib.suppress(FileNotFoundError):
                 st = os.stat(self.url.location)
                 if stat.S_ISCHR(st.st_mode):
-                    self.url.protocol = shv.RpcProtocol.TTY
+                    self.url.protocol = shv.rpcurl.RpcProtocol.TTY
 
     def cache_path(self) -> pathlib.Path:
         """Cache path based on the current URL."""
@@ -98,7 +101,7 @@ class Url(StateVar):
                 location=self.url.location,
                 port=self.url.port,
                 protocol=self.url.protocol,
-                login=shv.RpcLogin(username=self.url.login.username),
+                login=shv.rpclogin.RpcLogin(username=self.url.login.username),
             ).to_url(),
         )
 
@@ -106,7 +109,9 @@ class Url(StateVar):
         """Create new client based on this URL."""
         url = self.url
         if self.url.oauth2:
-            base = shv.SHVBase(await shv.rpctransport.connect_rpc_client(self.url))
+            base = shv.rpcapi.SHVBase(
+                await shv.rpctransport.connect_rpc_client(self.url)
+            )
             workflows = await base.call("", "workflows")
             await base.disconnect()
             if shv.is_shvlist(workflows):
@@ -138,7 +143,9 @@ class Url(StateVar):
                     url = dataclasses.replace(
                         url,
                         login=dataclasses.replace(
-                            url.login, token=token, login_type=shv.RpcLoginType.TOKEN
+                            url.login,
+                            token=token,
+                            login_type=shv.rpclogin.RpcLoginType.TOKEN,
                         ),
                     )
         return await Client.connect(url, state=self._state)

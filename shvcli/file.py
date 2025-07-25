@@ -7,15 +7,18 @@ import io
 import pathlib
 
 import shv
+import shv.path
+import shv.rpcdef.file
 from prompt_toolkit.shortcuts import ProgressBar, ProgressBarCounter
+from shv.rpcdef.file import RpcFile
 
 from .client import Client
 
 
 async def copy_file(
     client: Client,
-    src: pathlib.Path | shv.SHVPath,
-    dest: pathlib.Path | shv.SHVPath,
+    src: pathlib.Path | shv.path.SHVPath,
+    dest: pathlib.Path | shv.path.SHVPath,
     label: str = "",
 ) -> None:
     """Copy file with support for local and SHV RPC files.
@@ -23,17 +26,17 @@ async def copy_file(
     :raises RpcError: For RPC errors.
     :raises FileNotFoundError: In case remote or local file is not located.
     """
-    srcfile: shv.RpcFile | io.IOBase | None = None
-    destfile: shv.RpcFile | io.IOBase | None = None
+    srcfile: RpcFile | io.IOBase | None = None
+    destfile: RpcFile | io.IOBase | None = None
 
     try:
-        if isinstance(src, shv.SHVPath):
-            srcfile = shv.RpcFile(client, str(src), flags=shv.RpcFile.Flag(0))
+        if isinstance(src, shv.path.SHVPath):
+            srcfile = RpcFile(client, str(src), flags=RpcFile.Flag(0))
             if not await srcfile.readable():
                 raise FileNotFoundError(f"No such readable SHV RPC file: {src}")
             srcsiz = await srcfile.size()
-        if isinstance(dest, shv.SHVPath):
-            destfile = shv.RpcFile(client, str(dest), flags=shv.RpcFile.Flag(0))
+        if isinstance(dest, shv.path.SHVPath):
+            destfile = RpcFile(client, str(dest), flags=RpcFile.Flag(0))
             if not await destfile.writable():
                 raise FileNotFoundError(f"No such writable SHV RPC file: {dest}")
 
@@ -44,7 +47,7 @@ async def copy_file(
             destfile = dest.open("wb")
 
         assert srcfile is not None and destfile is not None
-        if isinstance(destfile, shv.RpcFile):
+        if isinstance(destfile, RpcFile):
             await destfile.truncate(0)
 
         with ProgressBar() as pb:

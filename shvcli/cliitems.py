@@ -3,8 +3,9 @@
 import contextlib
 import string
 
-from shv import SHVPath, SHVType
+from shv import SHVType
 from shv.cpon import Cpon
+from shv.path import SHVPath
 from shv.rpctypes import RpcType, RpcTypeParseError, rpctype_parse
 
 
