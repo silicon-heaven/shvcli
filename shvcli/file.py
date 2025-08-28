@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import io
 import pathlib
 
@@ -10,6 +11,7 @@ import shv
 import shv.path
 import shv.rpcdef.file
 from prompt_toolkit.shortcuts import ProgressBar, ProgressBarCounter
+from shv.rpcdef import RpcMethodNotFoundError
 from shv.rpcdef.file import RpcFile
 
 from .client import Client
@@ -48,7 +50,8 @@ async def copy_file(
 
         assert srcfile is not None and destfile is not None
         if isinstance(destfile, RpcFile):
-            await destfile.truncate(0)
+            with contextlib.suppress(RpcMethodNotFoundError):
+                await destfile.truncate(0)  # Truncate if truncate is available
 
         with ProgressBar() as pb:
             pbcnt: ProgressBarCounter = pb(label=label, total=srcsiz)
