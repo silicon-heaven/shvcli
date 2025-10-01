@@ -14,10 +14,16 @@
     pyproject = flakepy.lib.readPyproject ./. {};
 
     pypackage = pyproject.buildPackage ({
+      dependencies,
       runCommandLocal,
       python,
+      pyshv,
       shvcli,
     }: {
+      dependencies =
+        dependencies
+        ++ pyshv.optional-dependencies.canbus
+        ++ pyshv.optional-dependencies.websockets;
       pythonImportsCheck = ["shvcli"];
       meta.mainProgram = "shvcli";
 
