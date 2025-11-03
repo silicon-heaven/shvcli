@@ -14,6 +14,7 @@ from prompt_toolkit.key_binding.key_processor import KeyPressEvent
 from prompt_toolkit.patch_stdout import patch_stdout
 from prompt_toolkit.shortcuts import CompleteStyle, ProgressBar, ProgressBarCounter
 from prompt_toolkit.shortcuts.progress_bar import formatters
+from shv import rpctypes
 from shv.rpcdef import RpcError
 
 from .builtin import Builtins
@@ -22,7 +23,9 @@ from .cliitems import CliItems
 from .complet import CliCompleter
 from .lsdir import dir_method, ls_method
 from .options import CallDuration, RawOption, ViModeOption
-from .tools.print import print_cpon
+from .tools.cpon import cpon_ftext
+from .tools.print import print_ftext, print_multirow
+from .tools.rpctype import rpctype_result
 from .tree import Tree
 from .valid import CliValidator
 
@@ -111,7 +114,7 @@ async def read_line(client: Client, session: PromptSession) -> str:
     return res
 
 
-async def handle_line(client: Client, cmdline: str) -> None:
+async def handle_line(client: Client, cmdline: str) -> None:  # noqa: PLR0915
     """Handle single command line invocation."""
     items = CliItems(cmdline, client.state.path)
     raw = RawOption(client.state)
@@ -174,7 +177,17 @@ async def handle_line(client: Client, cmdline: str) -> None:
             if pbcnt is not None:
                 pbcnt.items_completed = 10000
                 pbcnt.label = " "
-        print_cpon(result)
+
+        rpctype: rpctypes.RpcType = rpctypes.rpctype_any
+        if not RawOption(client.state):
+            rpctype = rpctype_result(await client.get_method(items.path, items.method))
+            if (cause := rpctype.validate(result)) is not None:
+                print_ftext((
+                    ("ansiyellow", "Warning: invalid typehint; Expected "),
+                    ("ansiyellow", cause),
+                ))
+        print_multirow(cpon_ftext(result, rpctype), (("", " "),))
+
         if CallDuration(client.state):
             print(f"Call duration: {end_time - start_time}")
     except asyncio.CancelledError:

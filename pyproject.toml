@@ -28,6 +28,12 @@ dependencies = [
 [project.urls]
 repository = "https://gitlab.com/silicon-heaven/shvcli"
 
+[project.optional-dependencies]
+test = [
+  "pytest",
+  "pytest-cov",
+]
+
 [project.scripts]
 shvcli = "shvcli.__main__:main"
 
@@ -98,3 +104,6 @@ warn_redundant_casts = true
 warn_unused_ignores = true
 warn_return_any = true
 warn_unreachable = true
+[[tool.mypy.overrides]]
+module = "tests.*"
+allow_untyped_defs = true

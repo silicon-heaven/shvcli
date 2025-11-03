@@ -5,14 +5,15 @@ import contextlib
 import itertools
 import string
 
-from shv.cpon import Cpon
 from shv.path import SHVPath
 from shv.rpcdef import RpcDir, RpcError
 
 from .client import Client, Node
 from .cliitems import CliItems
-from .options import AutoGetOption, AutoGetTimeoutOption
-from .tools.print import cpon_ftext, print_flist, print_row
+from .options import AutoGetOption, AutoGetTimeoutOption, RawOption
+from .tools.cpon import cpon_ftext
+from .tools.print import print_flist, print_row
+from .tools.rpctype import rpctype_result
 from .tree import Tree
 
 
@@ -126,4 +127,11 @@ async def _autoget_print(
             resp = await client.call(path, method)
     except (RpcError, TimeoutError):
         return
-    print_row(itertools.chain(iter([*prefix, ("", "  ")]), cpon_ftext(Cpon.pack(resp))))
+    rpcdir = None
+    if not RawOption(client.state):
+        rpcdir = Tree(client.state).get_method(path, method)
+    print_row(
+        itertools.chain(
+            iter([*prefix, ("", "  ")]), cpon_ftext(resp, rpctype_result(rpcdir))
+        )
+    )

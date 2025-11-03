@@ -20,8 +20,11 @@ from ..builtin import Builtin, Builtins
 from ..client import Client
 from ..cliitems import CliItems
 from ..option import IntOption
+from ..options import RawOption
 from ..state import State
-from ..tools.print import print_cpon, print_ftext
+from ..tools.cpon import cpon_ftext
+from ..tools.print import print_multirow
+from ..tools.rpctype import rpctype_signal
 
 _kb = KeyBindings()
 
@@ -53,7 +56,8 @@ class BuiltinHistory(Builtin):
                     return hpth
         return None
 
-    async def run(self, items: CliItems, client: Client) -> None:  # noqa: D102
+    async def run(self, items: CliItems, client: Client) -> None:  # noqa: D102, PLR0915
+        since: datetime.datetime | None
         if items.param:
             try:
                 since = datetime.datetime.fromisoformat(items.param)
@@ -77,59 +81,73 @@ class BuiltinHistory(Builtin):
             key_bindings=_kb,
         )
 
-        cont = True
-        while cont:
+        while True:
             logs = await client.call(
                 history_path, "getLog", {1: since, 2: until, 3: int(count)}
             )
             if not shv.is_shvlist(logs) or not logs:
-                break  # No more logs
+                break  # No more logs or invalid format
+            since = None
 
-            refmap: dict[int, str] = {}
+            refmap: dict[int, tuple[str, str, str]] = {}
             for i, log in enumerate(logs):
-                if shv.is_shvimap(log):
-                    timestamp = log.get(1, None)
-                    loc = None
-                    if isinstance(ref := log.get(2), int):
-                        loc = refmap.pop(i - ref - 1, None)
-                        if loc is not None:
-                            refmap[i] = loc
-                    else:
-                        spath = log.get(3, "")
-                        method = log.get(5, "get")
-                        signal = log.get(4, "chng")
-                        if all(isinstance(s, str) for s in (spath, method, signal)):
-                            loc = f"{spath}:{method}:{signal}"
-                            refmap[i] = loc
-                    if isinstance(timestamp, datetime.datetime) and loc is not None:
-                        print_ftext(
-                            (
-                                (
-                                    "ansibrightblack",
-                                    timestamp.replace(tzinfo=None).isoformat(
-                                        timespec="milliseconds"
-                                    )
-                                    + "Z",
-                                ),
-                                ("", " "),
-                                ("ansiblue", loc),
-                            ),
-                            end="  ",
-                        )
-                        print_cpon(log[6], short=True)
-                        since = timestamp
-                        cont = True
-                        continue
-                print_cpon(log, short=True)
-                cont = False
+                if not shv.is_shvimap(log):
+                    print_multirow(cpon_ftext(log))
+                    continue
 
-            if cont:
-                with patch_stdout():
-                    cont = await app.run_async()
-                    app.output.cursor_up(1)
-                    app.output.write("\r")
-                    app.output.erase_end_of_line()
-                    app.output.flush()
+                timestamp_ = log.get(1, None)
+                if isinstance(timestamp_, datetime.datetime):
+                    since = timestamp_
+                    timestamp = (
+                        timestamp_.replace(tzinfo=None).isoformat(
+                            timespec="milliseconds"
+                        )
+                        + "Z"
+                    )
+                else:
+                    timestamp = str(timestamp_)
+                if isinstance(ref := log.get(2), int):
+                    if (loc := refmap.pop(i - ref - 1, None)) is not None:
+                        refmap[i] = loc
+                    else:
+                        continue
+                else:
+                    refmap[i] = (
+                        str(log.get(3, "")),
+                        str(log.get(5, "get")),
+                        str(log.get(4, "chng")),
+                    )
+                spath, source, signal_name = refmap[i]
+                fullpath = items.path / spath
+                rpcdir = None
+                if not RawOption(client.state):
+                    rpcdir = await client.get_method(fullpath, source)
+                print_multirow(
+                    cpon_ftext(log[6], rpctype_signal(rpcdir, signal_name)),
+                    (("", " "),),
+                    (
+                        ("ansibrightblack", timestamp),
+                        ("", " "),
+                        ("ansiblue", spath),
+                        ("", ":"),
+                        ("ansigreen", source),
+                        ("", ":"),
+                        ("ansired", signal_name),
+                        ("", ": "),
+                    ),
+                )
+
+            if since is None:
+                break
+
+            with patch_stdout():
+                cont = await app.run_async()
+                app.output.cursor_up(1)
+                app.output.write("\r")
+                app.output.erase_end_of_line()
+                app.output.flush()
+                if not cont:
+                    break
 
 
 class HistoryCount(IntOption):

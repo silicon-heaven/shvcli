@@ -11,9 +11,11 @@ from shv.rpcdef import RpcDir, RpcError, RpcMethodNotFoundError
 from shv.rpcmessage import RpcMessage
 
 from . import VERSION
-from .options import CallQueryTimeout, CallRetryTimeout
+from .options import CallQueryTimeout, CallRetryTimeout, RawOption
 from .state import State
-from .tools.print import print_cpon
+from .tools.cpon import cpon_ftext
+from .tools.print import print_multirow
+from .tools.rpctype import rpctype_signal
 from .tree import Node, Tree
 
 
@@ -31,8 +33,22 @@ class Client(SHVClient):
     async def _message(self, msg: RpcMessage) -> None:
         await super()._message(msg)
         if msg.type is RpcMessage.Type.SIGNAL:
-            Tree(self.state).valid_path(msg.path).methods.setdefault(msg.source, None)
-            print_cpon(msg.param, f"{msg.path}:{msg.source}:{msg.signal_name}: ", True)
+            rpcdir = None
+            if not RawOption(self.state):
+                node = Tree(self.state).valid_path(msg.path)
+                rpcdir = node.methods.setdefault(msg.source, None)
+            print_multirow(
+                cpon_ftext(msg.param, rpctype_signal(rpcdir, msg.signal_name)),
+                (("", " "),),
+                (
+                    ("ansiblue", msg.path),
+                    ("", ":"),
+                    ("ansigreen", msg.source),
+                    ("", ":"),
+                    ("ansired", msg.signal_name),
+                    ("", ": "),
+                ),
+            )
 
     async def ls(self, path: str | SHVPath) -> list[str]:
         """List same as in ValueClient but with result being preserved in tree."""
@@ -113,6 +129,13 @@ class Client(SHVClient):
         except (RpcError, ValueError):
             pass
         return node
+
+    async def get_method(self, path: SHVPath, method: str) -> RpcDir | None:
+        """Get method description either from :class:`Tree` or with :meth:`dir`."""
+        node = Tree(self.state).get_node(path)
+        if node is None or not node.methods_probed:
+            await self.dir(str(path))
+        return Tree(self.state).get_method(path, method)
 
     async def path_is_valid(self, path: str) -> bool:
         """Check if given path is valid by using ls command."""
