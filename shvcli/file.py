@@ -7,9 +7,7 @@ import contextlib
 import io
 import pathlib
 
-import shv
 import shv.path
-import shv.rpcdef.file
 from prompt_toolkit.shortcuts import ProgressBar, ProgressBarCounter
 from shv.rpcdef import RpcMethodNotFoundError
 from shv.rpcdef.file import RpcFile
@@ -44,7 +42,8 @@ async def copy_file(
 
         if isinstance(src, pathlib.Path):
             srcfile = src.open("rb")
-            srcsiz = src.stat().st_size
+            srcstat = await asyncio.get_running_loop().run_in_executor(None, src.stat)
+            srcsiz = srcstat.st_size
         if isinstance(dest, pathlib.Path):
             destfile = dest.open("wb")
 

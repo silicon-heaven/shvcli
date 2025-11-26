@@ -21,7 +21,7 @@ def oauth_login_token(
     auth_code = None
 
     class _HTTPHandler(http.server.BaseHTTPRequestHandler):
-        def do_GET(self) -> None:  # noqa: N802
+        def do_GET(self) -> None:
             nonlocal auth_code
             parsed_path = urllib.parse.urlparse(self.path)
             if parsed_path.path == "/":

@@ -49,10 +49,6 @@
       ];
     };
 
-    legacyPackages =
-      forSystems (system:
-        nixpkgs.legacyPackages.${system}.extend self.overlays.default);
-
     packages = withPkgs (pkgs: {
       default = pkgs."${pyproject.pname}";
     });
@@ -81,7 +77,10 @@
       python312 = pkgs.python312Packages."${pyproject.pname}";
       python313 = pkgs.python313Packages."${pyproject.pname}";
     });
-
     formatter = withPkgs (pkgs: pkgs.alejandra);
+
+    legacyPackages =
+      forSystems (system:
+        nixpkgs.legacyPackages.${system}.extend self.overlays.default);
   };
 }
