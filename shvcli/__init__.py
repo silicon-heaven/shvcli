@@ -52,4 +52,4 @@ __all__ = [
     "register_config",
 ]
 
-importlib.import_module(".builtins", package=__package__)
+importlib.import_module(".builtins", package=__package__)  # noqa: RUF067
