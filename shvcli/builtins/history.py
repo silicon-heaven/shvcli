@@ -55,7 +55,11 @@ class BuiltinHistory(Builtin):
 
     async def run(self, items: CliItems, client: Client) -> None:  # noqa: D102
         if items.param:
-            since = datetime.datetime.fromisoformat(items.param)
+            try:
+                since = datetime.datetime.fromisoformat(items.param)
+            except ValueError as exc:
+                print(exc)
+                return
             since = since.replace(tzinfo=datetime.UTC)
         else:
             since = datetime.datetime.now()
