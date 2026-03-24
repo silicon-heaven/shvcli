@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- minimal version of pySHV is now 0.13.0
+
 ### Fixed
 - exception thrown when `!history` builtin method was used with invalid argument
 - correctly wrap lists (such as `ls` or `dir` listing) at the longest word

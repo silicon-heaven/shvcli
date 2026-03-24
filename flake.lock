@@ -54,11 +54,11 @@
         "systems": "systems_2"
       },
       "locked": {
-        "lastModified": 1770201747,
-        "narHash": "sha256-9zCrizDDVrHr7H5F8WsoKr2h/QSIbPX22+iaf0lej+E=",
+        "lastModified": 1774445966,
+        "narHash": "sha256-6PrmBH0qe4j1YQk3dZFsNOu8OFvYn6PbsOjGvYLXcqY=",
         "owner": "silicon-heaven",
         "repo": "pyshv",
-        "rev": "c48c92ca4b0a4764aece735ef21dd1ce384693d8",
+        "rev": "e6d59c5411f9b7820819838683ce99bc9b24083d",
         "type": "gitlab"
       },
       "original": {

@@ -58,7 +58,7 @@ class CliItems:
             data = Cpon.unpack(param) if param else None
         except (ValueError, EOFError) as exc:
             raise ValueError(f"Invalid CPON: {exc}") from exc
-        if tp is not None and not tp.validate(data):
+        if tp is not None and not tp.is_valid(data):
             raise ValueError(f"Doesn't match RPC type: {rpctype}")
         return data
 
