@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Fixed
 - exception thrown when `!history` builtin method was used with invalid argument
+- correctly wrap lists (such as `ls` or `dir` listing) at the longest word
 
 
 ## [0.8.1] - 2025-11-26

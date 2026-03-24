@@ -35,14 +35,16 @@ def print_flist(
 
     def generate() -> collections.abc.Iterator[tuple[str, str]]:
         w = 0
-        for f, v in fstrs:
-            yield f, v
+        for is_first, _, (f, v) in more_itertools.mark_ends(fstrs):
             w += len(v)
-            if w > cols:
-                w = len(v)
-                yield "", "\n"
-            else:
-                yield "", " "
+            if not is_first:
+                if w >= cols:
+                    w = len(v)
+                    yield "", "\n"
+                else:
+                    w += 1
+                    yield "", " "
+            yield f, v
 
     print_ftext(generate())
 
