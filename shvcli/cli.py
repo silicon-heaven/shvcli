@@ -148,8 +148,8 @@ async def handle_line(client: Client, cmdline: str) -> None:
             # To cover case when typing is invalid we allow send valid
             # CPON and thus we do not check type hint here.
             param = items.cpon_param()
-        except (ValueError, EOFError):
-            print(f"Invalid CPON format of parameter: {items.param}")
+        except (ValueError, EOFError) as exc:
+            print(exc)
             return
 
         with contextlib.ExitStack() as es:

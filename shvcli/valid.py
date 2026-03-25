@@ -36,7 +36,7 @@ class CliValidator(Validator):
                 # it as such.
                 method_desc = Tree(self.client.state).get_method(items.path, method)
                 try:
-                    items.cpon_param(method_desc.param if method_desc else "")
+                    items.cpon_param(method_desc)
                 except (ValueError, EOFError) as exc:
                     raise ValidationError(message=str(exc)) from exc
             else:

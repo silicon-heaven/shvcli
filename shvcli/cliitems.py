@@ -6,7 +6,8 @@ import string
 from shv import SHVType
 from shv.cpon import Cpon
 from shv.path import SHVPath
-from shv.rpctypes import RpcType, RpcTypeParseError, rpctype_parse
+from shv.rpcdef import RpcDir
+from shv.rpctypes import RpcTypeParseError, rpctype_parse
 
 
 class CliItems:
@@ -45,21 +46,22 @@ class CliItems:
         """The parameter string provided after SHV RI."""
         return self.line.partition(" ")[2]
 
-    def cpon_param(self, rpctype: str = "") -> SHVType:
+    def cpon_param(self, rpcdir: RpcDir | None = None) -> SHVType:
         """Parse parameter in CPON data format and optionally validate.
 
-        :param rpctype: The type info for the parameter.
+        :param rpcdir: Description of the method this is parameter for.
         """
         param = self.param
-        tp: RpcType | None = None
-        with contextlib.suppress(RpcTypeParseError):
-            tp = rpctype_parse(rpctype)
         try:
             data = Cpon.unpack(param) if param else None
         except (ValueError, EOFError) as exc:
             raise ValueError(f"Invalid CPON: {exc}") from exc
-        if tp is not None and not tp.is_valid(data):
-            raise ValueError(f"Doesn't match RPC type: {rpctype}")
+        if rpcdir is not None:
+            with contextlib.suppress(RpcTypeParseError):
+                if msg := rpctype_parse(rpcdir.param).validate(
+                    data, RpcDir.Flag.IS_UPDATABLE in rpcdir.flags
+                ):
+                    raise ValueError(f"Doesn't match RPC type '{rpcdir.param}': {msg}")
         return data
 
     @property
