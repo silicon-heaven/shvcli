@@ -6,6 +6,7 @@ import itertools
 import string
 
 from shv.cpon import Cpon
+from shv.path import SHVPath
 from shv.rpcdef import RpcDir, RpcError
 
 from .client import Client, Node
@@ -84,7 +85,7 @@ async def ls_method(client: Client, items: CliItems) -> None:
             for nn, nv in node.items():
                 n = [("", " " * (w - len(nn))), ls_node_format(nn, nv)]
                 if "get" in nv.methods:
-                    await _autoget_print(client, n, str(path / nn), "get")
+                    await _autoget_print(client, n, path / nn, "get")
                 else:
                     print_row(n)
             return
@@ -101,7 +102,7 @@ async def dir_method(client: Client, items: CliItems) -> None:
         for d in methods:
             n = [("", " " * (w - len(d.name))), dir_method_format(d)]
             if _use_autoget(d):
-                await _autoget_print(client, n, str(path), d.name)
+                await _autoget_print(client, n, path, d.name)
             else:
                 print_row(n)
     else:
@@ -118,7 +119,7 @@ def _use_autoget(method: RpcDir) -> bool:
 
 
 async def _autoget_print(
-    client: Client, prefix: list[tuple[str, str]], path: str, method: str
+    client: Client, prefix: list[tuple[str, str]], path: SHVPath, method: str
 ) -> None:
     try:
         async with asyncio.timeout(float(AutoGetTimeoutOption(client.state))):
