@@ -13,8 +13,8 @@ def oauth_login_token(
 ) -> str:
     """Use OAuth2 to get login token.
 
-    This is blocking call and thus :func:`asyncio.run_in_executor` should be
-    used if called from asyncio.
+    This is blocking call and thus :func:`asyncio.run_in_executor` should be used if
+    called from asyncio.
     """
     redirect_uri = "http://localhost:37719/"
 

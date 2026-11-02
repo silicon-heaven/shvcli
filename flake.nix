@@ -56,6 +56,7 @@
     devShells = withPkgs (pkgs: {
       default = pkgs.mkShell {
         packages = with pkgs; [
+          # Linters and formatters
           deadnix
           editorconfig-checker
           gitlint
@@ -64,9 +65,9 @@
           shellcheck
           shfmt
           statix
+          # Release
+          (python3.withPackages (pypkgs: [pypkgs.build]))
           twine
-          (python3.withPackages (pypkgs:
-              with pypkgs; [build sphinx-autobuild]))
         ];
         inputsFrom = [pkgs.python3Packages."${pyproject.pname}"];
       };

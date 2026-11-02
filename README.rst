@@ -21,6 +21,9 @@ The installation can be done with package manager ``pip``.
 
    $ pip install shvcli
 
+***************
+ Documentation
+***************
 
 Usage
 -----
@@ -202,3 +205,19 @@ Plugins
 
 The support for external plugins is provided. These plugins are discovered using
 Python package metadata using the entry point ``shvcli.plugins``.
+
+***************
+ Running tests
+***************
+
+This project contains basic tests in directory tests; see the dependencies in the
+``pyproject.toml`` file.
+
+To run tests you have to use **pytest**. To run all tests just run it in the top level
+directory of the project:
+
+.. code-block:: console
+
+    $ pytest
+
+See the `pytest documentation <https://docs.pytest.org/>`__ for more info.

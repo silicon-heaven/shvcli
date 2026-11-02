@@ -37,8 +37,8 @@ class Option(abc.ABC, StateVar):
         """Aliases this builtin is know under.
 
         The default implementation takes the type name, removes optional suffix
-        ``Option`` and takes it as lower case name. If you want something
-        differrent then overload this class method.
+        ``Option`` and takes it as lower case name. If you want something differrent
+        then overload this class method.
         """
         return (cls.__name__.removesuffix("Option").lower(),)
 
@@ -82,8 +82,8 @@ class BoolOption(Option, abc.ABC):
     def name(cls) -> str:
         """Name of this bool option.
 
-        The default uses the same algorithm as :meth:`Option.aliases` and you
-        can change it by overloading this class method.
+        The default uses the same algorithm as :meth:`Option.aliases` and you can change
+        it by overloading this class method.
         """
         return cls.__name__.removesuffix("Option").lower()
 

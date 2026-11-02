@@ -1,7 +1,7 @@
 """All standard builtins.
 
-This module is imported in the top level init and thus all builtins imported
-here are automatically registered.
+This module is imported in the top level init and thus all builtins imported here are
+automatically registered.
 """
 
 from .broker import BuiltinSubscribe, BuiltinSubscriptions, BuiltinUnsubscribe

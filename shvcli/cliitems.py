@@ -81,8 +81,8 @@ class CliItems:
     def extend_ri(cls, ri: str, path_prefix: SHVPath | None = None) -> str:
         """Convert extended RI syntax to standard RI.
 
-        The extended RI used in SHVCLI allows not all items out of triplet to
-        be specified. This adds them if they are missing.
+        The extended RI used in SHVCLI allows not all items out of triplet to be
+        specified. This adds them if they are missing.
         """
         parts = ri.split(":")
         path = parts[0] if parts[0] else "**"

@@ -47,9 +47,9 @@ def args_apply(
 ) -> None:
     """Apply parsed arguments on the given state.
 
-    The parsed arguments should be applied after configuration but
-    configuration loading needs to be influenced by arguments and thus split
-    arguments parsing to the parsing and application phase.
+    The parsed arguments should be applied after configuration but configuration loading
+    needs to be influenced by arguments and thus split arguments parsing to the parsing
+    and application phase.
     """
     for gen in gens:
         with contextlib.suppress(StopIteration):

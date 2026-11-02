@@ -30,21 +30,19 @@ class StateVarMeta(abc.ABCMeta):
 class StateVar(metaclass=StateVarMeta):
     """The base for the state variable.
 
-    These represent state variables used in SHV CLI. The classes based on this
-    one behave like a singleton relative to the passed state (:data:`State`).
-    Thus to get existing object from state you do the same like initializing
-    it.
+    These represent state variables used in SHV CLI. The classes based on this one
+    behave like a singleton relative to the passed state (:data:`State`). Thus to get
+    existing object from state you do the same like initializing it.
 
-    All state variables are automatically registered to :attr:`variables` list
-    and through that are initialized and inserted to the state with
-    :func:`create_state`.
+    All state variables are automatically registered to :attr:`variables` list and
+    through that are initialized and inserted to the state with :func:`create_state`.
     """
 
     variables: typing.Final[list[type[StateVar]]] = []
     """All defined state variables.
 
-    All children of this class are registered to this list and the list is
-    sorted by their priority.
+    All children of this class are registered to this list and the list is sorted by
+    their priority.
     """
 
     priority: typing.ClassVar[int] = 0

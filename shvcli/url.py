@@ -65,14 +65,14 @@ class Url(StateVar):
 
         The following interpretations are attempted in the order:
 
-        - The shell host mapping is inspected if value doesn't match exactly.
-          If so then mapped value is taken, expanded in shell, and the
-          interpretation continues with result.
-        - The hosts mapping is inspected if value doesn't match exactly. If so
-          then the mapped value is taken and interpretation continues.
+        - The shell host mapping is inspected if value doesn't match exactly. If so then
+          mapped value is taken, expanded in shell, and the interpretation continues
+          with result.
+        - The hosts mapping is inspected if value doesn't match exactly. If so then the
+          mapped value is taken and interpretation continues.
         - The value is parsed as SHV RPC URL and thus also validated.
-        - If protocol is `unix` then local file system is consulted for
-          location. The protocol is modified in these cases:
+        - If protocol is `unix` then local file system is consulted for location. The
+          protocol is modified in these cases:
 
           - to ``tty`` if location is valid path with a TTY
         """

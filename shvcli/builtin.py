@@ -31,8 +31,8 @@ class Builtin(abc.ABC):
     def description(self) -> tuple[str, str]:
         """The provider of the description of this builtin.
 
-        :return: The first string is description of arguments expected by
-          builtin and the second one is the builtin description.
+        :returns: The first string is description of arguments expected by builtin and
+            the second one is the builtin description.
         """
 
     def completion(  # noqa: PLR6301
@@ -48,8 +48,8 @@ class Builtin(abc.ABC):
 
         This is used only if :class:`AutoProbeOption` is enabled.
 
-        It is common that this only fetches the required data with client and
-        the completion is performed in :meth:`completion` only.
+        It is common that this only fetches the required data with client and the
+        completion is performed in :meth:`completion` only.
         """
         return
         yield  # type: ignore
@@ -63,11 +63,11 @@ class Builtin(abc.ABC):
 
         This is used only if :class:`AutoProbeOption` is enabled.
 
-        It is common that this only fetches the required data with client and
-        the validation is performed in :meth:`validate` only. SHVCLI also
-        always uses completion and validation together and because completion
-        happens alongside with validation it is rather common to do this
-        probing in the :meth:`completion_async` only.
+        It is common that this only fetches the required data with client and the
+        validation is performed in :meth:`validate` only. SHVCLI also always uses
+        completion and validation together and because completion happens alongside with
+        validation it is rather common to do this probing in the
+        :meth:`completion_async` only.
         """
         return
 

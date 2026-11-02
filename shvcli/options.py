@@ -119,8 +119,7 @@ class CallQueryTimeout(FloatOption):
 class CallRetryTimeout(FloatOption):
     """Timeout in seconds when we try to send request again.
 
-    This has mainly effect if
-    This has effect that update of request state is faster.
+    This has mainly effect if This has effect that update of request state is faster.
     """
 
     def __init__(self, state: State) -> None:

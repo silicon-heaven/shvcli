@@ -76,9 +76,9 @@ class Config:
     def validate_usage(self) -> collections.abc.Iterator[str]:
         """Check if everything in the configuration file was used.
 
-        We do this to ensure the correctness of the configuration file. We do
-        not fail. We report this only as warning instead. This helps users to
-        discover typos and thus invalid configuration.
+        We do this to ensure the correctness of the configuration file. We do not fail.
+        We report this only as warning instead. This helps users to discover typos and
+        thus invalid configuration.
         """
 
         def validate(data: dict, used: dict) -> collections.abc.Iterator[str]:

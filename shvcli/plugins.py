@@ -10,8 +10,7 @@ logger = logging.getLogger(__name__)
 def load_plugins() -> None:
     """Import plugins.
 
-    Plugins get inserted automatically. We have to only ensure that we import
-    them.
+    Plugins get inserted automatically. We have to only ensure that we import them.
     """
     for plugin in importlib.metadata.entry_points(group="shvcli.plugins"):
         logger.debug("Loading plugin: %s", plugin.name)

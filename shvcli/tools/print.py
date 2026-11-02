@@ -118,8 +118,8 @@ def print_keyval(
 def print_block(text: str, indent: int = 0) -> None:
     """Print text with given indent from left side.
 
-    This uses terminal size to wrap text to next line and indent it with given
-    number of spaces.
+    This uses terminal size to wrap text to next line and indent it with given number of
+    spaces.
     """
     cols = shutil.get_terminal_size().columns - indent
     print(
