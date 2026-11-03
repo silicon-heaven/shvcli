@@ -19,20 +19,20 @@ class BuiltinScan(Builtin):
         builtins["scan"] = self
 
     @property
-    def description(self) -> tuple[str, str]:  # noqa: D102
+    def description(self) -> tuple[str, str]:  # ruff: ignore[undocumented-public-method]
         return (
             "[DEPTH]",
             "Recursivelly discover the SHV tree up to given depth (the default is 3).",
         )
 
-    def validate(self, items: CliItems, client: Client) -> None:  # noqa: PLR6301, D102
+    def validate(self, items: CliItems, client: Client) -> None:  # ruff: ignore[no-self-use, undocumented-public-method]
         if items.param:
             try:
                 int(items.param)
             except ValueError as exc:
                 raise ValidationError(message="Parameter must be integer") from exc
 
-    async def run(self, items: CliItems, client: Client) -> None:  # noqa: PLR6301, D102
+    async def run(self, items: CliItems, client: Client) -> None:  # ruff: ignore[no-self-use, undocumented-public-method]
         try:
             depth = int(items.param) if items.param else 3
         except ValueError:

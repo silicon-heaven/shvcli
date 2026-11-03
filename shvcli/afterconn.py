@@ -2,7 +2,6 @@
 
 import argparse
 import collections.abc
-import typing
 
 from .args import ArgsParseFuncGenT, register_argparser
 from .client import Client, SHVPath
@@ -10,7 +9,7 @@ from .cliitems import CliItems
 from .scan import scan_nodes
 from .state import StateVar
 
-AfterConnT: typing.TypeAlias = collections.abc.Callable[
+type AfterConnT = collections.abc.Callable[
     [Client], collections.abc.Coroutine[None, None, None]
 ]
 

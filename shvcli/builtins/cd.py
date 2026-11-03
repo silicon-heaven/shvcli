@@ -22,15 +22,15 @@ class BuiltinCD(Builtin):
         builtins["cd"] = self
 
     @property
-    def description(self) -> tuple[str, str]:  # noqa: D102
+    def description(self) -> tuple[str, str]:  # ruff: ignore[undocumented-public-method]
         return "[PATH]", "Change to given path even if it is invalid."
 
-    def completion(  # noqa: D102
+    def completion(  # ruff: ignore[undocumented-public-method]
         self, items: CliItems, client: Client
     ) -> collections.abc.Iterable[Completion]:
         yield from comp_path(items.param, self.state.path, Tree(self.state), "")
 
-    async def run(self, items: CliItems, client: Client) -> None:  # noqa: D102
+    async def run(self, items: CliItems, client: Client) -> None:  # ruff: ignore[undocumented-public-method]
         try:
             self.state.path = items.path_param
         except ValueError as exc:

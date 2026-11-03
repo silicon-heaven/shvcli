@@ -27,15 +27,15 @@ class BuiltinTree(Builtin):
         builtins["t"] = self
 
     @property
-    def description(self) -> tuple[str, str]:  # noqa: D102
+    def description(self) -> tuple[str, str]:  # ruff: ignore[undocumented-public-method]
         return "[PATH]", "Display tree representation of discovered nodes."
 
-    def completion(  # noqa: D102
+    def completion(  # ruff: ignore[undocumented-public-method]
         self, items: CliItems, client: Client
     ) -> collections.abc.Iterable[Completion]:
         yield from comp_path(items.param, self.state.path, Tree(self.state), "")
 
-    async def completion_async(  # noqa: D102
+    async def completion_async(  # ruff: ignore[undocumented-public-method]
         self, items: CliItems, client: Client
     ) -> collections.abc.AsyncGenerator[Completion, None]:
         if ":" not in items.param:
@@ -48,7 +48,7 @@ class BuiltinTree(Builtin):
         async for res in super().completion_async(items, client):
             yield res
 
-    async def run(self, items: CliItems, client: Client) -> None:  # noqa: D102
+    async def run(self, items: CliItems, client: Client) -> None:  # ruff: ignore[undocumented-public-method]
         def print_node(node: Node, cols: list[bool]) -> None:
             for _, is_last, name in more_itertools.mark_ends(node):
                 print_ftext(

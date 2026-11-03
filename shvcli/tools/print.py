@@ -14,8 +14,8 @@ from prompt_toolkit.formatted_text import FormattedText
 def print_ftext(
     fstrs: collections.abc.Iterable[tuple[str, str]]
     | collections.abc.Iterator[tuple[str, str]],
-    *args: typing.Any,  # noqa: ANN401
-    **kwargs: typing.Any,  # noqa: ANN401
+    *args: typing.Any,  # ruff: ignore[any-type]
+    **kwargs: typing.Any,  # ruff: ignore[any-type]
 ) -> None:
     """Call :meth:`print_formatted_text` with :class:`FormattedText`."""
     print_formatted_text(FormattedText(fstrs), *args, **kwargs)

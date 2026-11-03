@@ -42,7 +42,7 @@ class BuiltinHistory(Builtin):
         builtins["history"] = self
 
     @property
-    def description(self) -> tuple[str, str]:  # noqa: D102
+    def description(self) -> tuple[str, str]:  # ruff: ignore[undocumented-public-method]
         return "[SINCE]", "Get the node's history."
 
     @staticmethod
@@ -56,7 +56,7 @@ class BuiltinHistory(Builtin):
                     return hpth
         return None
 
-    async def run(self, items: CliItems, client: Client) -> None:  # noqa: D102, PLR0915
+    async def run(self, items: CliItems, client: Client) -> None:  # ruff: ignore[undocumented-public-method, too-many-statements]
         since: datetime.datetime | None
         if items.param:
             try:
@@ -158,11 +158,11 @@ class HistoryCount(IntOption):
         self._value = 20
 
     @classmethod
-    def aliases(cls) -> collections.abc.Sequence[str]:  # noqa: D102
+    def aliases(cls) -> collections.abc.Sequence[str]:  # ruff: ignore[undocumented-public-method]
         return ("history_count",)
 
     def __int__(self) -> int:
         return self._value
 
-    def rset(self, value: int) -> None:  # noqa: D102
+    def rset(self, value: int) -> None:  # ruff: ignore[undocumented-public-method]
         self._value = value

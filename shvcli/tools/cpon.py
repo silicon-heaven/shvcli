@@ -3,7 +3,6 @@
 import collections.abc
 import datetime
 import decimal
-import typing
 
 import more_itertools
 import shv
@@ -23,14 +22,11 @@ class Theme:
     key = "ansibrightblue"
 
 
-_RpcTypeT = typing.TypeVar("_RpcTypeT", bound=shv.rpctypes.RpcType)
-
-
-def _select_type(
+def _select_type[T: shv.rpctypes.RpcType](
     provided: shv.rpctypes.RpcType,
-    expected: type[_RpcTypeT],
-    cond: collections.abc.Callable[[_RpcTypeT], bool],
-) -> _RpcTypeT | None:
+    expected: type[T],
+    cond: collections.abc.Callable[[T], bool],
+) -> T | None:
     if isinstance(provided, expected) and cond(provided):
         return provided
     if isinstance(provided, shv.rpctypes.RpcTypeOneOf):
@@ -60,7 +56,7 @@ def _convert_list(
         yield Theme.structural, "]"
     else:
         subrpctype = (
-            rpctype.type
+            rpctype.rpctype
             if isinstance(rpctype, shv.rpctypes.RpcTypeList)
             else shv.rpctypes.rpctype_any
         )
@@ -90,7 +86,7 @@ def _convert_map(
         yield Theme.structural, "}"
     else:
         if isinstance(rpctype, shv.rpctypes.RpcTypeMap):
-            subrpctype = rpctype.type
+            subrpctype = rpctype.rpctype
         else:
             subrpctype = shv.rpctypes.rpctype_any
         yield Theme.structural, "{"
@@ -121,7 +117,7 @@ def _convert_imap(
         yield Theme.structural, "}"
     else:
         if isinstance(rpctype, shv.rpctypes.RpcTypeIMap):
-            subrpctype = rpctype.type
+            subrpctype = rpctype.rpctype
         else:
             subrpctype = shv.rpctypes.rpctype_any
         yield Theme.structural, "i{"

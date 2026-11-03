@@ -114,11 +114,11 @@ async def read_line(client: Client, session: PromptSession) -> str:
     return res
 
 
-async def handle_line(client: Client, cmdline: str) -> None:  # noqa: PLR0915
+async def handle_line(client: Client, cmdline: str) -> None:  # ruff: ignore[too-many-statements]
     """Handle single command line invocation."""
     items = CliItems(cmdline, client.state.path)
     raw = RawOption(client.state)
-    try:
+    try:  # ruff: ignore[too-many-statements-in-try-clause]
         if not items.method:
             # Patch prefix change
             newpath = items.path

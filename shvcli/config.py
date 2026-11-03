@@ -7,13 +7,12 @@ import contextlib
 import datetime
 import pathlib
 import tomllib
-import typing
 
 import more_itertools
 
 from .state import State
 
-TOMLT: typing.TypeAlias = (
+type TOMLT = (
     str
     | int
     | float

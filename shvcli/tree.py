@@ -16,7 +16,7 @@ from .state import State, StateVar
 class Node(collections.abc.Mapping[str, "Node"]):
     """Abstraction on the tree node."""
 
-    def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:  # noqa: ANN401
+    def __init__(self, *args: typing.Any, **kwargs: typing.Any) -> None:  # ruff: ignore[any-type]
         """Initialize the node."""
         super().__init__(*args, **kwargs)
 

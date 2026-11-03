@@ -26,8 +26,8 @@ class TestAppBroker(RpcBroker):
 
         def __init__(
             self,
-            *args: typing.Any,  # noqa ANN401
-            **kwargs: typing.Any,  # noqa ANN401
+            *args: typing.Any,  # ruff: ignore[any-type]
+            **kwargs: typing.Any,  # ruff: ignore[any-type]
         ) -> None:
             self._struct_value: SHVIMapType = {
                 0: "Name",
@@ -39,7 +39,7 @@ class TestAppBroker(RpcBroker):
             super().__init__(*args, **kwargs)
 
         @SHVMethods.property("complex")
-        def _complex(self, oldness: int | None) -> SHVType:  # noqa: PLR6301
+        def _complex(self, oldness: int | None) -> SHVType:  # ruff: ignore[no-self-use]
             """Complex data type without any type hint."""
             return [
                 {
@@ -62,7 +62,7 @@ class TestAppBroker(RpcBroker):
             self._struct_value = typing.cast(SHVIMapType, param)
 
         @SHVMethods.property("exception")
-        def _exception(self, oldness: int | None) -> SHVType:  # noqa: PLR6301
+        def _exception(self, oldness: int | None) -> SHVType:  # ruff: ignore[no-self-use]
             """Exception that we want to readably print."""
             raise RuntimeError("The simulated exception")
 

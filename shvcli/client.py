@@ -25,7 +25,7 @@ class Client(SHVClient):
     APP_NAME = "shvcli"
     APP_VERSION = VERSION
 
-    def __init__(self, *args: typing.Any, state: State, **kwargs: typing.Any) -> None:  # noqa ANN401
+    def __init__(self, *args: typing.Any, state: State, **kwargs: typing.Any) -> None:  # ruff: ignore[any-type] ANN401
         """Client initialization."""
         super().__init__(*args, **kwargs)
         self.state = state
@@ -84,8 +84,8 @@ class Client(SHVClient):
         self,
         path: str | SHVPath,
         method: str,
-        *args: typing.Any,  # noqa ANN401
-        **kwargs: typing.Any,  # noqa ANN401
+        *args: typing.Any,  # ruff: ignore[any-type] ANN401
+        **kwargs: typing.Any,  # ruff: ignore[any-type] ANN401
     ) -> SHVType:
         """Perform call same as ValueClient.
 
@@ -116,7 +116,7 @@ class Client(SHVClient):
 
     async def probe(self, path: SHVPath) -> Node | None:
         """Probe operation, that is discover methods and children of the node."""
-        try:
+        try:  # ruff: ignore[too-many-statements-in-try-clause]
             node = Tree(self.state).get_node(path)
             if node is None:
                 await self.ls(str(path))

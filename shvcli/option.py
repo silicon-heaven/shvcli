@@ -6,6 +6,7 @@ import abc
 import argparse
 import collections.abc
 import inspect
+import math
 import sys
 import typing
 
@@ -27,7 +28,7 @@ class Option(abc.ABC, StateVar):
     options: typing.Final[dict[str, type[Option]]] = {}
     """All registered options."""
 
-    def __init_subclass__(cls, *args: typing.Any, **kwargs: typing.Any) -> None:  # noqa: ANN401
+    def __init_subclass__(cls, *args: typing.Any, **kwargs: typing.Any) -> None:  # ruff: ignore[any-type]
         super().__init_subclass__(*args, **kwargs)
         if not inspect.isabstract(cls):
             Option.options.update({k: cls for k in cls.aliases()})
@@ -55,13 +56,13 @@ class Option(abc.ABC, StateVar):
         :param value: The value provided by user to be set.
         """
 
-    def completion(  # noqa: PLR6301
+    def completion(  # ruff: ignore[no-self-use]
         self, value: str, items: CliItems
     ) -> collections.abc.Iterable[Completion]:
         """Parameter completion for this option value."""
         yield from ()
 
-    def validate(self, value: str, items: CliItems) -> None:  # noqa: PLR6301
+    def validate(self, value: str, items: CliItems) -> None:  # ruff: ignore[no-self-use]
         """Validate the option value."""
         return
 
@@ -74,7 +75,7 @@ class BoolOption(Option, abc.ABC):
     """The boolean option."""
 
     @classmethod
-    def aliases(cls) -> collections.abc.Sequence[str]:  # noqa: D102
+    def aliases(cls) -> collections.abc.Sequence[str]:  # ruff: ignore[undocumented-public-method]
         name = cls.name()
         return (name, f"no{name}")
 
@@ -88,10 +89,10 @@ class BoolOption(Option, abc.ABC):
         return cls.__name__.removesuffix("Option").lower()
 
     @property
-    def fstr(self) -> tuple[str, str]:  # noqa: D102
+    def fstr(self) -> tuple[str, str]:  # ruff: ignore[undocumented-public-method]
         return ("ansigreen" if self else "ansired", str(bool(self)).lower())
 
-    def set(self, alias: str, value: str) -> None:  # noqa: D102
+    def set(self, alias: str, value: str) -> None:  # ruff: ignore[undocumented-public-method]
         name = self.name()
         mp = {"true": True, "false": False, "t": True, "f": False, "": True}
         if (v := mp.get(value.lower())) is not None:
@@ -116,12 +117,12 @@ class BoolOption(Option, abc.ABC):
         :param value: The value to be set.
         """
 
-    def completion(  # noqa: PLR6301, D102
+    def completion(  # ruff: ignore[no-self-use, undocumented-public-method]
         self, value: str, items: CliItems
     ) -> collections.abc.Iterable[Completion]:
         yield from comp_from(value, {"true", "false"})
 
-    def validate(self, value: str, items: CliItems) -> None:  # noqa: PLR6301, D102
+    def validate(self, value: str, items: CliItems) -> None:  # ruff: ignore[no-self-use, undocumented-public-method]
         if value not in {"t", "f", "true", "false", ""}:
             raise ValidationError(message="Can be only 'true' or 'false'")
 
@@ -130,10 +131,10 @@ class IntOption(Option):
     """The integer option."""
 
     @property
-    def fstr(self) -> tuple[str, str]:  # noqa: D102
+    def fstr(self) -> tuple[str, str]:  # ruff: ignore[undocumented-public-method]
         return ("", str(int(self)))
 
-    def set(self, alias: str, value: str) -> None:  # noqa: D102
+    def set(self, alias: str, value: str) -> None:  # ruff: ignore[undocumented-public-method]
         try:
             v = int(value)
         except ValueError as exc:
@@ -159,7 +160,7 @@ class IntOption(Option):
         :param value: The value to be set.
         """
 
-    def validate(self, value: str, items: CliItems) -> None:  # noqa: PLR6301, D102
+    def validate(self, value: str, items: CliItems) -> None:  # ruff: ignore[no-self-use, undocumented-public-method]
         try:
             int(value)
         except ValueError as exc:
@@ -169,11 +170,14 @@ class IntOption(Option):
 class FloatOption(Option):
     """The float option."""
 
+    rel_tol = 1e-3
+    """The compare precission (if values are equal)."""
+
     @property
-    def fstr(self) -> tuple[str, str]:  # noqa: D102
+    def fstr(self) -> tuple[str, str]:  # ruff: ignore[undocumented-public-method]
         return ("", str(float(self)))
 
-    def set(self, alias: str, value: str) -> None:  # noqa: D102
+    def set(self, alias: str, value: str) -> None:  # ruff: ignore[undocumented-public-method]
         try:
             v = float(value)
         except ValueError as exc:
@@ -185,7 +189,11 @@ class FloatOption(Option):
 
     def __eq__(self, other: object) -> bool:
         try:
-            return float(typing.cast(typing.SupportsFloat, other)) == float(self)
+            return math.isclose(
+                float(typing.cast(typing.SupportsFloat, other)),
+                float(self),
+                rel_tol=self.rel_tol,
+            )
         except (ValueError, TypeError):
             return False
 
@@ -199,7 +207,7 @@ class FloatOption(Option):
         :param value: The value to be set.
         """
 
-    def validate(self, value: str, items: CliItems) -> None:  # noqa: PLR6301, D102
+    def validate(self, value: str, items: CliItems) -> None:  # ruff: ignore[no-self-use, undocumented-public-method]
         try:
             float(value)
         except ValueError as exc:

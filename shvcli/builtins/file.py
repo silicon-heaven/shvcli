@@ -47,19 +47,19 @@ class BuiltinUpload(Builtin):
         builtins["upload"] = self
 
     @property
-    def description(self) -> tuple[str, str]:  # noqa: D102
+    def description(self) -> tuple[str, str]:  # ruff: ignore[undocumented-public-method]
         return "FILE_PATH", "Push local file to the file node."
 
-    def completion(  # noqa: PLR6301, D102
+    def completion(  # ruff: ignore[no-self-use, undocumented-public-method]
         self, items: CliItems, client: Client
     ) -> collections.abc.Iterable[Completion]:
         yield from comp_local_file(items)
 
-    def validate(self, items: CliItems, client: Client) -> None:  # noqa: PLR6301, D102
+    def validate(self, items: CliItems, client: Client) -> None:  # ruff: ignore[no-self-use, undocumented-public-method]
         if not pathlib.Path(items.param).expanduser().is_file():
             raise ValidationError(message="No such local file.")
 
-    async def run(self, items: CliItems, client: Client) -> None:  # noqa: PLR6301, D102
+    async def run(self, items: CliItems, client: Client) -> None:  # ruff: ignore[no-self-use, undocumented-public-method]
         try:
             await copy_file(client, pathlib.Path(items.param), items.path)
         except FileNotFoundError as exc:
@@ -74,19 +74,19 @@ class BuiltinDownload(Builtin):
         builtins["download"] = self
 
     @property
-    def description(self) -> tuple[str, str]:  # noqa: D102
+    def description(self) -> tuple[str, str]:  # ruff: ignore[undocumented-public-method]
         return "FILE_PATH", "Pull file node to the local file."
 
-    def completion(  # noqa: PLR6301, D102
+    def completion(  # ruff: ignore[no-self-use, undocumented-public-method]
         self, items: CliItems, client: Client
     ) -> collections.abc.Iterable[Completion]:
         yield from comp_local_file(items)
 
-    def validate(self, items: CliItems, client: Client) -> None:  # noqa: PLR6301, D102
+    def validate(self, items: CliItems, client: Client) -> None:  # ruff: ignore[no-self-use, undocumented-public-method]
         if not pathlib.Path(items.param).expanduser().is_file():
             raise ValidationError(message="No such local directory.")
 
-    async def run(self, items: CliItems, client: Client) -> None:  # noqa: PLR6301, D102
+    async def run(self, items: CliItems, client: Client) -> None:  # ruff: ignore[no-self-use, undocumented-public-method]
         try:
             await copy_file(client, items.path, pathlib.Path(items.param))
         except FileNotFoundError as exc:
@@ -101,21 +101,21 @@ class BuiltinVerify(Builtin):
         builtins["verify"] = self
 
     @property
-    def description(self) -> tuple[str, str]:  # noqa: D102
+    def description(self) -> tuple[str, str]:  # ruff: ignore[undocumented-public-method]
         return "FILE_PATH", "Verify file node against the local file."
 
-    def completion(  # noqa: PLR6301, D102
+    def completion(  # ruff: ignore[no-self-use, undocumented-public-method]
         self, items: CliItems, client: Client
     ) -> collections.abc.Iterable[Completion]:
         yield from comp_local_file(items)
 
-    def validate(self, items: CliItems, client: Client) -> None:  # noqa: PLR6301, D102
+    def validate(self, items: CliItems, client: Client) -> None:  # ruff: ignore[no-self-use, undocumented-public-method]
         if not pathlib.Path(items.param).expanduser().is_file():
             raise ValidationError(message="No such local file.")
 
-    async def run(self, items: CliItems, client: Client) -> None:  # noqa: PLR6301, D102
+    async def run(self, items: CliItems, client: Client) -> None:  # ruff: ignore[no-self-use, undocumented-public-method]
         try:
-            with pathlib.Path(items.param).open("rb") as file:  # noqa: ASYNC230
+            with pathlib.Path(items.param).open("rb") as file:  # ruff: ignore[blocking-open-call-in-async-function]
                 crc = 0
                 while data := file.read(io.DEFAULT_BUFFER_SIZE):
                     crc = zlib.crc32(data, crc)

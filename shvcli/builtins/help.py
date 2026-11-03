@@ -24,20 +24,20 @@ class BuiltinHelp(Builtin):
         builtins["h"] = self
 
     @property
-    def description(self) -> tuple[str, str]:  # noqa: D102
+    def description(self) -> tuple[str, str]:  # ruff: ignore[undocumented-public-method]
         return "[METHOD]", "Print help for builtin methods."
 
-    def completion(  # noqa: D102
+    def completion(  # ruff: ignore[undocumented-public-method]
         self, items: CliItems, client: Client
     ) -> collections.abc.Iterable[Completion]:
         yield from comp_from(items.param.partition(" ")[2], Builtins(self.state))
 
-    def validate(self, items: CliItems, client: Client) -> None:  # noqa: D102
+    def validate(self, items: CliItems, client: Client) -> None:  # ruff: ignore[undocumented-public-method]
         methods = set(items.param.split())
         if missing := methods - set(Builtins(self.state)):
             raise ValidationError(message=f"No such method: {' '.join(missing)}")
 
-    async def run(self, items: CliItems, client: Client) -> None:  # noqa: D102
+    async def run(self, items: CliItems, client: Client) -> None:  # ruff: ignore[undocumented-public-method]
         methods = set(items.param.split())
         if missing := methods - set(Builtins(self.state)):
             print(f"No such method: {' '.join(missing)}")

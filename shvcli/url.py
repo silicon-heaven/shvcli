@@ -77,7 +77,7 @@ class Url(StateVar):
           - to ``tty`` if location is valid path with a TTY
         """
         if value in self.hosts_shell:
-            value = subprocess.run(  # noqa S602
+            value = subprocess.run(  # ruff: ignore[subprocess-popen-with-shell-equals-true]
                 f"printf '%s' \"{self.hosts_shell[value]}\"",
                 shell=True,
                 stdout=subprocess.PIPE,

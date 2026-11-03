@@ -16,7 +16,7 @@ classifiers = [
   "Topic :: System :: Shells",
   "Topic :: Terminals",
 ]
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 dependencies = [
   "pyshv >= 0.13.0",
   "prompt-toolkit",
@@ -102,7 +102,7 @@ docstring-code-format = true
 preview = true
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.12"
 ignore_missing_imports = true
 disallow_untyped_defs = true
 warn_redundant_casts = true

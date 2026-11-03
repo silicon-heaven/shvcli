@@ -25,17 +25,17 @@ class BuiltinSubscribe(Builtin):
         builtins["sub"] = self
 
     @property
-    def description(self) -> tuple[str, str]:  # noqa: D102
+    def description(self) -> tuple[str, str]:  # ruff: ignore[undocumented-public-method]
         return "[PATH:METHOD:SIGNAL]...", "Subscribe to given RPC RIs."
 
-    def completion(  # noqa: D102
+    def completion(  # ruff: ignore[undocumented-public-method]
         self, items: CliItems, client: Client
     ) -> collections.abc.Iterable[Completion]:
         yield from comp_signal_ri(
             items.param.rpartition(" ")[2], self.state.path, Tree(self.state)
         )
 
-    async def completion_async(  # noqa: D102
+    async def completion_async(  # ruff: ignore[undocumented-public-method]
         self, items: CliItems, client: Client
     ) -> collections.abc.AsyncGenerator[Completion, None]:
         last = items.param.rpartition(" ")[2]
@@ -46,7 +46,7 @@ class BuiltinSubscribe(Builtin):
         async for res in super().completion_async(items, client):
             yield res
 
-    async def run(self, items: CliItems, client: Client) -> None:  # noqa: PLR6301, D102
+    async def run(self, items: CliItems, client: Client) -> None:  # ruff: ignore[no-self-use, undocumented-public-method]
         for ri in items.ri_param:
             await client.subscribe(ri)
 
@@ -60,19 +60,19 @@ class BuiltinUnsubscribe(Builtin):
         builtins["usub"] = self
 
     @property
-    def description(self) -> tuple[str, str]:  # noqa: D102
+    def description(self) -> tuple[str, str]:  # ruff: ignore[undocumented-public-method]
         return "[PATH:METHOD:SIGNAL]...", "Unsubscribe to given or all RPC RIs."
 
-    def completion(  # noqa: PLR6301, D102
+    def completion(  # ruff: ignore[no-self-use, undocumented-public-method]
         self, items: CliItems, client: Client
     ) -> collections.abc.Iterable[Completion]:
         yield from comp_from(items.param.rpartition(" ")[2], client.subscriptions())
 
-    def validate(self, items: CliItems, client: Client) -> None:  # noqa: PLR6301, D102
+    def validate(self, items: CliItems, client: Client) -> None:  # ruff: ignore[no-self-use, undocumented-public-method]
         if missing := set(items.param.split()) - set(client.subscriptions()):
             raise ValidationError(message=f"Not subscribed: {' '.join(missing)}")
 
-    async def run(self, items: CliItems, client: Client) -> None:  # noqa: PLR6301, D102
+    async def run(self, items: CliItems, client: Client) -> None:  # ruff: ignore[no-self-use, undocumented-public-method]
         for ri in items.ri_param if items.param else client.subscriptions():
             await client.unsubscribe(ri)
 
@@ -86,10 +86,10 @@ class BuiltinSubscriptions(Builtin):
         builtins["subs"] = self
 
     @property
-    def description(self) -> tuple[str, str]:  # noqa: D102
+    def description(self) -> tuple[str, str]:  # ruff: ignore[undocumented-public-method]
         return "", "Display current subscriptions."
 
-    async def run(self, items: CliItems, client: Client) -> None:  # noqa: PLR6301, D102
+    async def run(self, items: CliItems, client: Client) -> None:  # ruff: ignore[no-self-use, undocumented-public-method]
         subs = await client.call(".broker/currentClient", "subscriptions")
         if isinstance(subs, dict):
             print_flist(

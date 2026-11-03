@@ -21,7 +21,7 @@ class ViModeOption(BoolOption):
     def __bool__(self) -> bool:
         return self._value
 
-    def rset(self, value: bool) -> None:  # noqa: D102
+    def rset(self, value: bool) -> None:  # ruff: ignore[undocumented-public-method]
         self._value = value
 
 
@@ -35,7 +35,7 @@ class AutoGetOption(BoolOption):
     def __bool__(self) -> bool:
         return self._value
 
-    def rset(self, value: bool) -> None:  # noqa: D102
+    def rset(self, value: bool) -> None:  # ruff: ignore[undocumented-public-method]
         self._value = value
 
 
@@ -49,7 +49,7 @@ class AutoProbeOption(BoolOption):
     def __bool__(self) -> bool:
         return self._value
 
-    def rset(self, value: bool) -> None:  # noqa: D102
+    def rset(self, value: bool) -> None:  # ruff: ignore[undocumented-public-method]
         self._value = value
 
 
@@ -63,7 +63,7 @@ class RawOption(BoolOption):
     def __bool__(self) -> bool:
         return self._value
 
-    def rset(self, value: bool) -> None:  # noqa: D102
+    def rset(self, value: bool) -> None:  # ruff: ignore[undocumented-public-method]
         self._value = value
 
 
@@ -74,7 +74,7 @@ class DebugOption(BoolOption):
         super().__init__(state)
         logging.basicConfig(format="[%(asctime)s] [%(levelname)s] - %(message)s")
 
-    def rset(self, value: bool) -> None:  # noqa: PLR6301, D102
+    def rset(self, value: bool) -> None:  # ruff: ignore[no-self-use, undocumented-public-method]
         logging.root.setLevel(logging.DEBUG if value else logging.WARNING)
 
     def __bool__(self) -> bool:
@@ -91,7 +91,7 @@ class CallDuration(BoolOption):
     def __bool__(self) -> bool:
         return self._value
 
-    def rset(self, value: bool) -> None:  # noqa: D102
+    def rset(self, value: bool) -> None:  # ruff: ignore[undocumented-public-method]
         self._value = value
 
 
@@ -106,13 +106,13 @@ class CallQueryTimeout(FloatOption):
         self._value = 0.25
 
     @classmethod
-    def aliases(cls) -> collections.abc.Sequence[str]:  # noqa: D102
+    def aliases(cls) -> collections.abc.Sequence[str]:  # ruff: ignore[undocumented-public-method]
         return ("call_query_timeout",)
 
     def __float__(self) -> float:
         return self._value
 
-    def rset(self, value: float) -> None:  # noqa: D102
+    def rset(self, value: float) -> None:  # ruff: ignore[undocumented-public-method]
         self._value = value
 
 
@@ -127,13 +127,13 @@ class CallRetryTimeout(FloatOption):
         self._value = 60.0
 
     @classmethod
-    def aliases(cls) -> collections.abc.Sequence[str]:  # noqa: D102
+    def aliases(cls) -> collections.abc.Sequence[str]:  # ruff: ignore[undocumented-public-method]
         return ("call_retry_timeout",)
 
     def __float__(self) -> float:
         return self._value
 
-    def rset(self, value: float) -> None:  # noqa: D102
+    def rset(self, value: float) -> None:  # ruff: ignore[undocumented-public-method]
         self._value = value
 
 
@@ -145,13 +145,13 @@ class AutoGetTimeoutOption(FloatOption):
         self._value = 1.0
 
     @classmethod
-    def aliases(cls) -> collections.abc.Sequence[str]:  # noqa: D102
+    def aliases(cls) -> collections.abc.Sequence[str]:  # ruff: ignore[undocumented-public-method]
         return ("autoget_timeout",)
 
     def __float__(self) -> float:
         return self._value
 
-    def rset(self, value: float) -> None:  # noqa: D102
+    def rset(self, value: float) -> None:  # ruff: ignore[undocumented-public-method]
         self._value = value
 
 

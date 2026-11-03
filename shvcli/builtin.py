@@ -19,7 +19,7 @@ class Builtin(abc.ABC):
 
     builtins: typing.Final[list[type[Builtin]]] = []
 
-    def __init_subclass__(cls, *args: typing.Any, **kwargs: typing.Any) -> None:  # noqa: ANN401
+    def __init_subclass__(cls, *args: typing.Any, **kwargs: typing.Any) -> None:  # ruff: ignore[any-type]
         super().__init_subclass__(*args, **kwargs)
         Builtin.builtins.append(cls)
 
@@ -35,13 +35,13 @@ class Builtin(abc.ABC):
             the second one is the builtin description.
         """
 
-    def completion(  # noqa: PLR6301
+    def completion(  # ruff: ignore[no-self-use]
         self, items: CliItems, client: Client
     ) -> collections.abc.Iterable[Completion]:
         """Parameter completion for this builtin."""
         return tuple()
 
-    async def completion_async(  # noqa: PLR6301
+    async def completion_async(  # ruff: ignore[no-self-use]
         self, items: CliItems, client: Client
     ) -> collections.abc.AsyncGenerator[Completion, None]:
         """Asynchronous parameter completion for this builtin.
@@ -54,11 +54,11 @@ class Builtin(abc.ABC):
         return
         yield  # type: ignore
 
-    def validate(self, items: CliItems, client: Client) -> None:  # noqa: PLR6301
+    def validate(self, items: CliItems, client: Client) -> None:  # ruff: ignore[no-self-use]
         """Validate the parameter for this builtin."""
         return
 
-    async def validate_async(self, items: CliItems, client: Client) -> None:  # noqa: PLR6301
+    async def validate_async(self, items: CliItems, client: Client) -> None:  # ruff: ignore[no-self-use]
         """Asynchronously validate the parameter for this builtin.
 
         This is used only if :class:`AutoProbeOption` is enabled.

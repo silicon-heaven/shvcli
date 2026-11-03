@@ -26,10 +26,10 @@ class BuiltinSet(Builtin):
         builtins["s"] = self
 
     @property
-    def description(self) -> tuple[str, str]:  # noqa: D102
+    def description(self) -> tuple[str, str]:  # ruff: ignore[undocumented-public-method]
         return "[OPTION [VALUE]]", "Set the runtime option."
 
-    def completion(  # noqa: D102
+    def completion(  # ruff: ignore[undocumented-public-method]
         self, items: CliItems, client: Client
     ) -> collections.abc.Iterable[Completion]:
         item = items.param.split()[-1] if items.param else ""
@@ -41,14 +41,14 @@ class BuiltinSet(Builtin):
             yield from comp_from(item, Option.options)
             yield from comp_from(item, (f"{n}=" for n in Option.options))
 
-    def validate(self, items: CliItems, client: Client) -> None:  # noqa: D102
+    def validate(self, items: CliItems, client: Client) -> None:  # ruff: ignore[undocumented-public-method]
         item = items.param.split()[-1] if items.param else ""
         key, _, val = item.partition("=")
         if key not in Option.options:
             raise ValidationError(message=f"No such option: {key}")
         Option.options[key](self.state).validate(val, items)
 
-    async def run(self, items: CliItems, client: Client) -> None:  # noqa: D102
+    async def run(self, items: CliItems, client: Client) -> None:  # ruff: ignore[undocumented-public-method]
         if not items.param.strip():
             print_keyval(
                 (("", opt.aliases()[0]), opt(self.state).fstr)

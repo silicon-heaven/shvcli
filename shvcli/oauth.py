@@ -65,11 +65,11 @@ def oauth_login_token(
         "redirect_uri": redirect_uri,
         "scope": " ".join(scopes),
     }
-    req = urllib.request.Request(  # noqa: S310
+    req = urllib.request.Request(  # ruff: ignore[suspicious-url-open-usage]
         token_url, data=urllib.parse.urlencode(data).encode("UTF-8"), method="POST"
     )
     req.add_header("Content-Type", "application/x-www-form-urlencoded")
-    with urllib.request.urlopen(req) as resp:  # noqa: S310
+    with urllib.request.urlopen(req) as resp:  # ruff: ignore[suspicious-url-open-usage]
         res = json.loads(resp.read())["access_token"]
     assert isinstance(res, str)
     return f"{tp}:{res}"

@@ -35,12 +35,11 @@
     },
     "nixpkgs_2": {
       "locked": {
-        "lastModified": 1769433173,
-        "narHash": "sha256-Gf1dFYgD344WZ3q0LPlRoWaNdNQq8kSBDLEWulRQSEs=",
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "13b0f9e6ac78abbbb736c635d87845c4f4bee51b",
-        "type": "github"
+        "lastModified": 1793582901,
+        "narHash": "sha256-TmjnoezEMTuSmEjtCa9gTaK6hLOFJv+ZvIDCu5s9vec=",
+        "rev": "5c9de89ec55bff981cb8da1a4ee92b10f1438ffc",
+        "type": "tarball",
+        "url": "https://releases.nixos.org/nixpkgs/nixpkgs-26.11pre1106677.5c9de89ec55b/nixexprs.tar.zst"
       },
       "original": {
         "id": "nixpkgs",
@@ -54,11 +53,11 @@
         "systems": "systems_2"
       },
       "locked": {
-        "lastModified": 1791289763,
-        "narHash": "sha256-I1wlCFEH0EF4J+Si6t3YA4+rUoQA1kpK4F2lzO8O9P8=",
+        "lastModified": 1793713265,
+        "narHash": "sha256-gzANBVhvcSo1eRHex6luzFwfDOpbSQuc0XA/mjLbe54=",
         "owner": "silicon-heaven",
         "repo": "pyshv",
-        "rev": "0b05fd27e3a50efcae4c5f6359d02415cfc81ec1",
+        "rev": "02bf83b490f04ca5732a9fcda1f2a510abc0bf39",
         "type": "gitlab"
       },
       "original": {
@@ -88,11 +87,11 @@
     },
     "systems_2": {
       "locked": {
-        "lastModified": 1681028828,
-        "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
+        "lastModified": 1791244623,
+        "narHash": "sha256-uuanbkFk8a313Zfrxdcz8Us/yQtaxNnKJtX8v0ZPpd8=",
         "owner": "nix-systems",
         "repo": "default",
-        "rev": "da67096a3b9bf56a91d16901293e51ba5b49a27e",
+        "rev": "d36eeed142f88b5a636f2e3856a53c61654cf29b",
         "type": "github"
       },
       "original": {

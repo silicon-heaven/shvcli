@@ -4,15 +4,14 @@ import argparse
 import collections.abc
 import contextlib
 import pathlib
-import typing
 
 from .__version__ import VERSION
 from .state import State
 
-ArgsParseFuncGenT: typing.TypeAlias = collections.abc.Generator[
+type ArgsParseFuncGenT = collections.abc.Generator[
     None, tuple[argparse.Namespace, State], None
 ]
-ArgsparseFuncT: typing.TypeAlias = collections.abc.Callable[
+type ArgsparseFuncT = collections.abc.Callable[
     [argparse.ArgumentParser], ArgsParseFuncGenT
 ]
 
