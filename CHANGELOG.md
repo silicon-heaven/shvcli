@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Printing CPON ornamenated based on RpcTypes
 
 ### Changed
-- minimal version of pySHV is now 0.13.0
+- minimal version of pySHV is now 0.14.0
 
 ### Fixed
 - exception thrown when `!history` builtin method was used with invalid argument
